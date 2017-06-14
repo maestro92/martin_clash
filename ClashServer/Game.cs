@@ -1,0 +1,46 @@
+﻿using System;
+
+public class Game
+{
+	public static void Main(string[] args)
+	{		
+
+		Util.OnLog = (s) =>
+			{
+				Console.WriteLine(s);
+			};
+
+		Util.OnLogWarning = (s) =>
+			{
+				Console.WriteLine("WARNING: " + s);
+			};
+
+		Util.OnLogError = (s) =>
+			{
+				Console.WriteLine("ERROR: " + s);
+			};
+
+		// server start hosting
+		Server server = new Server();
+
+		server.startHosting(NetworkManager.LOCAL_IP_ADDRESS, NetworkManager.SERVER_PORT);
+
+		while (true)
+		{
+			// listen for messages
+
+			server.TryAcceptConnections();
+			// server.processIncomingMessages();
+
+			// server.update();
+
+
+		}
+
+
+		server.stopHosting();
+
+		return;
+	}
+}
+

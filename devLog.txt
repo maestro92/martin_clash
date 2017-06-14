@@ -1,0 +1,114 @@
+I am starting this project to learn a few things
+
+-	all the cool network stuff Eric has one for game2
+	(hitches, network recovery)
+
+-	replays
+	(to be able to play replays at different speed)
+
+-	amazon server and redis all that kind of stuff
+
+-	server code
+
+-	test server load with bots
+
+I currently work mostly on client code, so this is gonna my study on server/network side of stuff
+
+
+##################################################################################
+##################################### 2017/06/02 #################################
+##################################################################################
+
+-	setting up
+so i was looking into the .gitignore and I was wondering what are unity meta files
+and whether I should keep the meta files in version controls
+
+found a great link that answers this quesiton
+
+TL:DR
+most definitely keep both the asset and the meta files cuz meta files has a guid information
+and that is actually how a lot of things in unity communicate with each other
+
+Link:
+	https://blog.forrestthewoods.com/managing-meta-files-in-unity-713166ee3d30
+
+
+
+##################################################################################
+##################################### 2017/06/06 #################################
+##################################################################################
+
+bumped into a lot of questions while setting up server code in MonoDevelop
+
+Q:	what is the difference between a solution and a project?
+
+A:	Google says:
+
+
+	solution file (.sln) 
+
+	project file (.vcproj)
+
+	atleast in visual studio, a solution is a set of projects. 
+
+
+links:
+	https://stackoverflow.com/questions/1428265/solution-file-vs-project-file-in-visual-studio
+
+	https://msdn.microsoft.com/en-us/library/b142f8e7.aspx
+
+	since in visual studio, solution and project files has these definitions, I would assume it's the same in MonoDevelop
+
+
+
+I have also noticed that in game2s setup, the monoDevelop solution had UnityEngine.dll as a reference. Turns out Visual studio has that too
+
+So the question is:
+
+Q:	What are references in Visual Studio (MonoDevelop)?
+
+A:	Apparently references are just dynamically linked library
+
+	https://www.youtube.com/watch?v=5QXav2r1piE
+
+	if you look at the video from the above link, you can see that it is a tutorial teaching how to ad a .dll file
+
+
+
+When looking for these .dll functions, use the link below
+	https://docs.unity3d.com/460/Documentation/Manual/UsingDLL.html
+
+
+
+
+
+
+##################################################################################
+##################################### 2017/06/07 #################################
+##################################################################################
+
+So I spent the whole night last night understanding the client and server folder set up, now I am going to take a crack at "redis"
+
+
+
+
+
+
+
+
+
+##################################################################################
+##################################### 2017/06/10 #################################
+##################################################################################
+
+starting to write basic code for the client to connect to the server on starting the game, then I had the question of what is IPaddress and Port number. Althought I studied this in CS433, but..... 
+
+Anyways, I wrote a google doc for it.
+
+
+
+when studying netcode, I have also noticed that both gaffer on games and Milota has this network connection class. 
+I really kind of want to understand the different of these two apis
+
+I dedicated an entire folder for that, so please refer to eric_netcode_vs_yojimbo
+
