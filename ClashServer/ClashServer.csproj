@@ -35,6 +35,8 @@
     <Compile Include="Shared\Net\NetAddress.cs" />
     <Compile Include="Shared\Net\NetGameConnection.cs" />
     <Compile Include="Shared\Util.cs" />
+    <Compile Include="Shared\Message.cs" />
+    <Compile Include="ServerClientHandle.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />

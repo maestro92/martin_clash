@@ -3,15 +3,22 @@ using System.Collections.Generic;
 // using UnityEngine;
 
 
+
+
+
+
+
 // this is gonna be shared among client and server
 public class Simulation 
 {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
+
+    void Init()
+    {
+
+
+    }
+
 	// Update is called once per frame
 	void Update () {
 		

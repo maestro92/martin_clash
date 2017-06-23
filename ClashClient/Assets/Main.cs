@@ -37,7 +37,7 @@ public class Main : MonoBehaviour
     public int TARGET_FRAME_RATE = 60;
 
     // List<ClientSession> clientSessions;
-    GameClient mainGameClient;
+    public GameClient mainGameClient;
 
 	// Use this for initialization
 	void Start () 
@@ -66,6 +66,7 @@ public class Main : MonoBehaviour
 
         networkManager.GetServerIPAddress();
 
+        ui = new UIManager();
         ui.Init();
 
         InitMainGameClient();
@@ -77,7 +78,6 @@ public class Main : MonoBehaviour
 
     // my client is the same as clientSession
     // your main program can certainly have more than one client, right? :)
-
     void InitMainGameClient()
     {
         mainGameClient = new GameClient();
@@ -107,7 +107,13 @@ public class Main : MonoBehaviour
 	void FixedUpdate()
 	{
 
+        // listen for socket?
 
+
+
+        // send out your own messages
+
+        mainGameClient.connection.Pump();
         /* 
         if not disconnected
         {

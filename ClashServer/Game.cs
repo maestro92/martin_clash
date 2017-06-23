@@ -29,10 +29,15 @@ public class Game
 		{
 			// listen for messages
 
-			server.TryAcceptConnections();
-			// server.processIncomingMessages();
+//			server.SyncAcceptConnection();
 
-			// server.update();
+//			server.TryAsyncAcceptConnections();
+
+			// 
+			server.processIncomingMessages();
+
+			// all game simulations
+			server.update();
 
 
 		}

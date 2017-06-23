@@ -2,7 +2,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Text;  
+using System.Text;
+using System.Collections;
+using System.Collections.Generic;
 
 public enum NetGameConnectionState
 {
@@ -17,11 +19,21 @@ public enum NetGameConnectionState
 public class NetGameConnection
 {
 
+
+    // send queue
+//    public List<Message> m_sendQueue;
+//    public List<Message> m_receiveQueue;
+	public List<Message> m_sendList;
+	public List<Message> m_receiveList;
+
     public NetGameConnection()
     {
         m_rawTcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
         SetConnectionState(NetGameConnectionState.DISCONNECTED); 
-    }
+
+        m_sendList = new List<Message>();
+		m_receiveList = new List<Message>();
+	}
 
     private Socket                  m_rawTcpSocket = null;
     private NetGameConnectionState m_connectionState = NetGameConnectionState.DISCONNECTED;
@@ -32,7 +44,6 @@ public class NetGameConnection
         m_connectionState = state;
     }
 
-    // send queue
     // receive queue
 
 
@@ -62,8 +73,41 @@ public class NetGameConnection
 
         int bytesSend = m_rawTcpSocket.Send(msg);
 
-//        int bytesReceive = m_rawTcpSocket.Receive(bytesSend)
+    }
 
+    public void SendMessage(Message message)
+    {
+		m_sendList.Add(message);
+    }
+
+    // pump means tick
+    public void Pump()
+    {
+        // listen for stuff
+
+        // Receive the response from the remote device.  
+
+
+        // If the remote host shuts down the Socket connection with the Shutdown method, 
+        // and all available data has been received, the Receive method will complete immediately and return zero bytes.
+
+        byte[] bytes = new byte[1024]; 
+        try 
+        {           
+            int bytesRec = m_rawTcpSocket.Receive(bytes);  
+            Util.Log("Echoed test = " + Encoding.ASCII.GetString(bytes,0,bytesRec));
+        }
+        catch (SocketException e)
+        {
+            Console.WriteLine("{0} Error code: {1}.", e.Message, e.ErrorCode);
+        }
+
+
+
+        while (m_sendList.Count > 0)
+        {
+            
+        }
     }
 }
 

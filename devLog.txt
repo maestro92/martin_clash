@@ -90,13 +90,6 @@ When looking for these .dll functions, use the link below
 So I spent the whole night last night understanding the client and server folder set up, now I am going to take a crack at "redis"
 
 
-
-
-
-
-
-
-
 ##################################################################################
 ##################################### 2017/06/10 #################################
 ##################################################################################
@@ -112,3 +105,16 @@ I really kind of want to understand the different of these two apis
 
 I dedicated an entire folder for that, so please refer to eric_netcode_vs_yojimbo
 
+
+
+
+##################################################################################
+##################################### 2017/06/22 #################################
+##################################################################################
+I have been spending the past two weeks understanding basic network socket programming. Mainly I have been studying Eric’s net code and reading the UNIX Network Programming, Third Edition.
+
+after some studying, I think for the server code, the main design decision is whether if I should I do a select() style or multi-threaded sockets. I think I am going with the latter cuz it is more straightforward. Usually my impression for these kind of architectural design decisions is that you just have to implement more to know more about it. It’s just like my experience with collision detections. You would really know the details and differences once you implement a few.
+
+Also from my impression from googling. The architecture only really matters more when you get to thousands of connection. 
+
+For this reason, I am just gonna model after Eric’s net code and do a multi-threaded sockets approach

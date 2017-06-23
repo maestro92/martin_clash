@@ -23,8 +23,16 @@ public class GameClient
 
         connection.ConnectToHost(hostIPAddress, NetworkManager.SERVER_PORT);
         Util.Log("StartNetworkSession");
-            
-
     }
+
+
+
+    // all the messages
+    public void SearchMatch()
+    {
+        Message message = Message.GetOne(Message.Type.SearchMatch);
+        connection.SendMessage(message);
+    }
+
 }
 
