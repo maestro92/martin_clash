@@ -18,21 +18,29 @@ public enum NetGameConnectionState
 
 public class NetGameConnection
 {
-
-
-    // send queue
-//    public List<Message> m_sendQueue;
-//    public List<Message> m_receiveQueue;
+	// need a lock around sendList 
+	// just in case multiple threads are trying to call Message();
+	// no need one for receive, cuz we only receive in one place
+	public Object m_sendListLock;
 	public List<Message> m_sendList;
 	public List<Message> m_receiveList;
 
-    public NetGameConnection()
+
+	public byte[] sendDataBuffer;
+	public const int sendDataBufferSize = 2048;
+
+	public byte[] receiveDataBuffer;
+	public const int receiveDataBufferSize = 2048;
+
+	public NetGameConnection()
     {
-        m_rawTcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
+//        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
 
         m_sendList = new List<Message>();
 		m_receiveList = new List<Message>();
+
+		sendDataBuffer = new byte[sendDataBufferSize];
+		receiveDataBuffer = new byte[receiveDataBufferSize];
 	}
 
     private Socket                  m_rawTcpSocket = null;
@@ -62,9 +70,38 @@ public class NetGameConnection
         lets try Connect first
     */ 
 
+
+
+
+    ////////////////////////////////////////////////////
+    // Server Side Specific Functions
+    ////////////////////////////////////////////////////
+    public void InitServerSideSocket(Socket socket)
+    {
+        m_rawTcpSocket = socket;
+    }
+
+
+
+
+
+    ////////////////////////////////////////////////////
+    // Client Side Specific Functions
+    ////////////////////////////////////////////////////
+    public void InitClientSideSocket()
+    {
+        m_rawTcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+    }
+
+
     public void ConnectToHost(string ipAddress, int port)
     {        
         m_rawTcpSocket.Connect(ipAddress, port);
+
+
+        // send a login Message
+
+        /*
         // connect to ipAddress
         SetConnectionState(NetGameConnectionState.CONNECTED);
 
@@ -72,17 +109,112 @@ public class NetGameConnection
         byte[] msg = Encoding.ASCII.GetBytes("This is a test<EOF>");
 
         int bytesSend = m_rawTcpSocket.Send(msg);
-
+        */
     }
+
+
+	public void Shutdown()
+	{
+		if (m_rawTcpSocket != null)
+		{
+			m_rawTcpSocket.Shutdown(SocketShutdown.Both);
+			m_rawTcpSocket.Close();
+		}
+	}
+
+
 
     public void SendMessage(Message message)
     {
-		m_sendList.Add(message);
+		lock (m_sendListLock)
+		{
+			m_sendList.Add(message);
+		}
     }
+
+
+
+	// this is called only in one thread
+    public void SocketSend(Socket handlerSocket)
+    {
+		// Begin sending the data to the remote device.  
+		List<Message> tempSendList = null;
+		lock(m_sendListLock)
+		{
+			tempSendList = new List<Message>();
+			foreach (var msg in m_sendList)
+			{				
+				tempSendList.Add(msg);
+			}
+
+			m_sendList.Clear();
+		}
+
+        if (tempSendList.Count > 0)
+        {
+			MemsetZeroBuffer(sendDataBuffer, sendDataBufferSize);
+            handlerSocket.BeginSend(sendDataBuffer, 0, sendDataBuffer.Length, 0, new AsyncCallback(SendCallback), null);
+        }
+    }
+
+
+    private void SendCallback(IAsyncResult ar)
+    {
+        // Complete sending the data to the remote device
+		int byteSent = m_rawTcpSocket.EndSend(ar);
+        Util.Log("Sent " + byteSent.ToString() + " to client");
+    }
+
+
+    public void SocketReceive(Socket handlerSocket)
+    {
+		MemsetZeroBuffer(receiveDataBuffer, receiveDataBufferSize);
+
+        // apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
+        handlerSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
+    }
+
+
+
+    private void ReceiveCallback(IAsyncResult ar)
+    {
+		int numBytesReceived = m_rawTcpSocket.EndReceive(ar);
+
+        if (numBytesReceived > 0)
+        {
+			/*
+            // There  might be more data, so store the data received so far.  
+            state.sb.Append(Encoding.ASCII.GetString(
+                state.buffer, 0, numBytesReceived));
+
+            // Check for end-of-file tag. If it is not there, read   
+            // more data.  
+            content = state.sb.ToString();
+			*/
+         //   Util.Log("Read " + content + " bytes from socket");
+        }
+    }
+
+
+
+	private void MemsetZeroBuffer(byte[] buffer, int size)
+	{
+		for (int i = 0; i < size; i++)
+		{
+			buffer[i] = 0;
+		}
+	}
+
+
+
+
 
     // pump means tick
     public void Pump()
     {
+		SocketSend();
+		SocketReceive();
+
         // listen for stuff
 
         // Receive the response from the remote device.  
@@ -91,6 +223,8 @@ public class NetGameConnection
         // If the remote host shuts down the Socket connection with the Shutdown method, 
         // and all available data has been received, the Receive method will complete immediately and return zero bytes.
 
+
+        /*
         byte[] bytes = new byte[1024]; 
         try 
         {           
@@ -101,13 +235,14 @@ public class NetGameConnection
         {
             Console.WriteLine("{0} Error code: {1}.", e.Message, e.ErrorCode);
         }
+        */
 
-
-
+        /*
         while (m_sendList.Count > 0)
         {
             
         }
+        */
     }
 }
 

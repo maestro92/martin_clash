@@ -118,3 +118,13 @@ after some studying, I think for the server code, the main design decision is wh
 Also from my impression from googling. The architecture only really matters more when you get to thousands of connection. 
 
 For this reason, I am just gonna model after Eric’s net code and do a multi-threaded sockets approach
+
+
+
+##################################################################################
+##################################### 2017/06/29 #################################
+##################################################################################
+Instead of doing things in binary, I am just gonna have server and client send actual strings to each other to ensure that the sockets are working properly
+
+
+

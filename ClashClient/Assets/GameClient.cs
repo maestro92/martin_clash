@@ -9,15 +9,12 @@ public class GameClient
 
     }
 
-
-
-
     public NetGameConnection connection;
-//    public Socket 
+
     public void StartNetworkSession(string hostIPAddress)
     {
-
         connection = new NetGameConnection();
+        connection.InitClientSideSocket();
 
         Util.Log("Esablishing Connection to " + hostIPAddress);
 
@@ -26,11 +23,21 @@ public class GameClient
     }
 
 
+    public void Pump()
+    {
+        connection.Pump();
+    }
 
-    // all the messages
+
+    public void Login()
+    {
+        Message message = Message.Login();
+        connection.SendMessage(message);
+    }
+
     public void SearchMatch()
     {
-        Message message = Message.GetOne(Message.Type.SearchMatch);
+        Message message = Message.SearchMessage();
         connection.SendMessage(message);
     }
 

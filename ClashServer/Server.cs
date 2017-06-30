@@ -71,12 +71,13 @@ public class Server
 	public Socket m_listenerSocket;
 
 	public Dictionary<ServerClientHandle, NetGameConnection> connections;
+
 	ServerConfig m_serverConfig;
 
 	private bool m_isRunning;
-	private int m_clientCounter;
+	private int m_clientIdCounter;
 
-	byte[] bytes = new Byte[1024];
+	private Object m_connectionLock = new Object();
 
 	// Thread signal.  
 	public static ManualResetEvent m_allDone = new ManualResetEvent(false);
@@ -85,7 +86,7 @@ public class Server
 	{
 		m_serverConfig = new ServerConfig(SERVER_BACKLOG);
 		m_isRunning = false;
-		m_clientCounter = 0;
+		m_clientIdCounter = 0;
 		Console.WriteLine("init server");
 	}
 
@@ -104,6 +105,7 @@ public class Server
 		Util.LogError(m_hostingNetAddress.GetIPAddress().ToString());
 
 		connections = new Dictionary<ServerClientHandle, NetGameConnection>();
+		// handlerSockets = new Dictionary<ServerClientHandle, Socket>();
 
 		IPEndPoint hostingSocketEndPoint = new IPEndPoint(m_hostingNetAddress.GetIPAddress(), m_hostingNetAddress.GetPort());
 
@@ -140,6 +142,8 @@ public class Server
 				Socket handlerSocket = m_listenerSocket.Accept();
 
 				Util.Log(" >> got a connection");
+
+
 				Thread clientThread = new Thread(() => spawnHandleClientThread(handlerSocket));
 				clientThread.Start();
 			}
@@ -162,48 +166,144 @@ public class Server
 
 	private void spawnHandleClientThread(Socket handlerSocket)
 	{
-		// 
-		bool clientAlive = true;
-		while (clientAlive)
+		int newId = 0;
+		lock (m_connectionLock)
 		{
-			Util.LogError("Handling client");
-			Thread.Sleep(5000);
+			newId = m_clientIdCounter;
+			m_clientIdCounter++;
 		}
-		handlerSocket.Shutdown(SocketShutdown.Both);
-		handlerSocket.Close();
+
+		ServerClientHandle client = new ServerClientHandle(newId);
+		NetGameConnection connection = new NetGameConnection();
+		connection.InitServerSideSocket(handlerSocket);
+
+		lock (m_connectionLock)
+		{
+			connections.Add(client, connection);
+		}
 	}
 
-	// https://docs.microsoft.com/en-us/dotnet/framework/network-programming/synchronous-server-socket-example
-	public void SyncAcceptConnection()
+
+
+
+
+
+	/*
+	public void processIncomingMessages()
 	{
-		string data = null;
-		Util.Log("Waiting for a connection...");
-
-		Socket handler = m_listenerSocket.Accept();
-		data = null;
-
-		while (true)
+		// go through all connections
+		// if they are connected, process incoming messages for that connection
+		lock(m_connectionLock)
 		{
-			bytes = new byte[1024];
-			int bytesReceived = handler.Receive(bytes);
-			data += Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-			if (data.IndexOf("<EOF>") > -1)
+			foreach (var connection in connections)
 			{
-				break;
+				processIncomingMessage();
+
 			}
 		}
-
-		// Show the data on the console.
-		Util.Log("Text received : " + data);
-
-		// Echo the data back to the client
-		byte[] msg = Encoding.ASCII.GetBytes(data);
-
-		// shutting down the new socket
-		handler.Send(msg);
-		handler.Shutdown(SocketShutdown.Both);
-		handler.Close();
 	}
+
+
+	public void processIncomingMessage()
+	{
+
+	}
+	*/
+
+
+
+	public void update()
+	{
+		// 
+		// tick simulation
+		lock (m_connectionLock)
+		{
+			foreach (var kvp in connections)
+			{
+				NetGameConnection connection = kvp.Value;
+				connection.Pump();
+			}
+		}
+	}
+
+
+	public void stopHosting()
+	{
+		foreach (var kvp in connections)
+		{
+			NetGameConnection connection = kvp.Value;
+			connection.Shutdown();
+		}
+
+		m_listenerSocket.Shutdown(SocketShutdown.Both);
+		m_listenerSocket.Close();
+	}
+
+
+
+
+
+	/*
+	public void SocketSend(Socket handlerSocket)
+	{
+
+		// Begin sending the data to the remote device.  
+		handlerSocket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handlerSocket);
+	}
+
+	private void SendCallback(IAsyncResult ar)
+	{
+		Socket handler = (Socket)ar.AsyncState;
+
+		// Complete sending the data to the remote device
+		int byteSent = handler.EndSend(ar);
+		Util.Log("Sent " + byteSent.ToString() + " to client");
+	}
+
+
+	public void SocketReceive(Socket handlerSocket)
+	{
+		//	StateObject state = new StateObject;
+		int bufferSize = 1024;
+		byte[] buffer = new byte[bufferSize];
+
+
+		// Create the state object.  
+		StateObject state = new StateObject();
+		state.workSocket = handlerSocket;
+
+		// apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
+		handlerSocket.BeginReceive(buffer, 0, bufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
+	}
+
+
+
+	private void ReceiveCallback(IAsyncResult ar)
+	{
+		String content = String.Empty;
+
+		StateObject state = (StateObject)ar.AsyncState;
+		Socket socket = state.workSocket;
+		int numBytesReceived = socket.EndReceive(ar);
+
+		if (numBytesReceived > 0)
+		{
+			// There  might be more data, so store the data received so far.  
+			state.sb.Append(Encoding.ASCII.GetString(
+				state.buffer, 0, numBytesReceived));
+
+			// Check for end-of-file tag. If it is not there, read   
+			// more data.  
+			content = state.sb.ToString();
+			Util.Log("Read " + content + " bytes from socket");
+		}
+	}
+*/
+
+
+
+
+
 
 
 	// accepting connections asynchronously gives you the ability
@@ -219,7 +319,7 @@ public class Server
 	public void TryAsyncAcceptConnections()
 	{
 		Util.Log("Check to See if there is a connection...");
-  
+
 		try
 		{
 			// Set the event to nonsignaled state.  
@@ -319,41 +419,36 @@ public class Server
 	}
 
 
-
-
-
-
-	public void processIncomingMessages()
+	// https://docs.microsoft.com/en-us/dotnet/framework/network-programming/synchronous-server-socket-example
+	public void SyncAcceptConnection()
 	{
-		// go through all connections
-		// if they are connected, process incoming messages for that connection
+		string data = null;
+		Util.Log("Waiting for a connection...");
 
-		foreach (var connection in connections)
+		Socket handler = m_listenerSocket.Accept();
+		data = null;
+
+		while (true)
 		{
-			/*
-			if ()
+			bytes = new byte[1024];
+			int bytesReceived = handler.Receive(bytes);
+			data += Encoding.ASCII.GetString(bytes, 0, bytesReceived);
+			if (data.IndexOf("<EOF>") > -1)
 			{
-				
+				break;
 			}
-			*/
 		}
 
+		// Show the data on the console.
+		Util.Log("Text received : " + data);
+
+		// Echo the data back to the client
+		byte[] msg = Encoding.ASCII.GetBytes(data);
+
+		// shutting down the new socket
+		handler.Send(msg);
+		handler.Shutdown(SocketShutdown.Both);
+		handler.Close();
 	}
 
-
-
-	public void update()
-	{
-
-
-		// 
-		// tick simulation
-
-	}
-
-	public void stopHosting()
-	{
-
-
-	}
 }
