@@ -42,6 +42,7 @@ public class Main : MonoBehaviour
 	// Use this for initialization
 	void Start () 
     {
+        instance = this;
 
         Util.OnLog = (s) => 
             {
@@ -113,7 +114,7 @@ public class Main : MonoBehaviour
 
         // send out your own messages
 
-        mainGameClient.connection.Pump();
+        mainGameClient.Pump();
         /* 
         if not disconnected
         {

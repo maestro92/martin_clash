@@ -153,8 +153,7 @@ public class Server
 			// This ensures that all data is sent and received on the conneceted socket 
 			// before it is closed
 		//	m_listenerSocket.Shutdown(SocketShutdown.Both);
-			m_listenerSocket.Close();
-			Util.Log(" >> " + "shutting down server listening socket");						              
+		//	m_listenerSocket.Close();
 		}
        ));
 
@@ -175,7 +174,10 @@ public class Server
 
 		ServerClientHandle client = new ServerClientHandle(newId);
 		NetGameConnection connection = new NetGameConnection();
+		connection.OnHandleMessage = OnHandleMessage;
 		connection.InitServerSideSocket(handlerSocket);
+
+
 
 		lock (m_connectionLock)
 		{
@@ -185,6 +187,61 @@ public class Server
 
 
 
+
+	public void update()
+	{
+		// 
+		// tick simulation
+
+		lock (m_connectionLock)
+		{
+			foreach (var kvp in connections)
+			{
+				NetGameConnection connection = kvp.Value;			
+				connection.Pump();
+			}
+		}
+	}
+
+
+	public void stopHosting()
+	{
+		foreach (var kvp in connections)
+		{
+			NetGameConnection connection = kvp.Value;
+			connection.Shutdown();
+		}
+
+		m_listenerSocket.Shutdown(SocketShutdown.Both);
+		m_listenerSocket.Close();
+		Util.Log(" >> " + "shutting down server listening socket");
+
+
+	}
+
+
+	public void OnHandleMessage(Message message)
+	{
+		if (message.type == Message.Type.None)
+		{
+			Util.LogError("Message type is None");
+			return;
+		}
+
+		switch (message.type)
+		{
+			case Message.Type.Login:
+				Util.LogError("Login");
+				break;
+
+			case Message.Type.SearchMatch:
+				Util.LogError("SearchMatch");
+				break;
+
+			default:
+				break;
+		}
+	}
 
 
 
@@ -209,39 +266,6 @@ public class Server
 
 	}
 	*/
-
-
-
-	public void update()
-	{
-		// 
-		// tick simulation
-		lock (m_connectionLock)
-		{
-			foreach (var kvp in connections)
-			{
-				NetGameConnection connection = kvp.Value;
-				connection.Pump();
-			}
-		}
-	}
-
-
-	public void stopHosting()
-	{
-		foreach (var kvp in connections)
-		{
-			NetGameConnection connection = kvp.Value;
-			connection.Shutdown();
-		}
-
-		m_listenerSocket.Shutdown(SocketShutdown.Both);
-		m_listenerSocket.Close();
-	}
-
-
-
-
 
 	/*
 	public void SocketSend(Socket handlerSocket)
@@ -373,6 +397,7 @@ public class Server
 		handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
 		*/
 
+		/*
 		string data = null;
 		bytes = new byte[1024];
 		int bytesReceived = handler.Receive(bytes);
@@ -381,6 +406,7 @@ public class Server
 		{
 			return;
 		}
+		*/
 	}
 
 
@@ -428,6 +454,7 @@ public class Server
 		Socket handler = m_listenerSocket.Accept();
 		data = null;
 
+		/*
 		while (true)
 		{
 			bytes = new byte[1024];
@@ -438,7 +465,7 @@ public class Server
 				break;
 			}
 		}
-
+*/
 		// Show the data on the console.
 		Util.Log("Text received : " + data);
 

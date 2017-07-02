@@ -34,7 +34,7 @@ public class Game
 //			server.TryAsyncAcceptConnections();
 
 			// 
-			server.processIncomingMessages();
+	//		server.processIncomingMessages();
 
 			// all game simulations
 			server.update();

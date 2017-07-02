@@ -14,9 +14,7 @@ public class BattleScreenController : MonoBehaviour
     // sends a message to the server
     public void SearchForBattle()
     {
-        Util.LogError("SearchForBattle");
-
-
+        Main.instance.mainGameClient.SearchMatch();
         Main.instance.mainGameClient.SearchMatch();
     }
 

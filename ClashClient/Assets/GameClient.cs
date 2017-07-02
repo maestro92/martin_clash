@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 
 public class GameClient
@@ -37,6 +40,7 @@ public class GameClient
 
     public void SearchMatch()
     {
+        Debug.LogError("SearchMatch()");
         Message message = Message.SearchMessage();
         connection.SendMessage(message);
     }
