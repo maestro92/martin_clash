@@ -14,6 +14,8 @@ public class GameClient
 
     public NetGameConnection connection;
 
+    private ClientSimulation clientSim;
+
     public void StartNetworkSession(string hostIPAddress)
     {
         connection = new NetGameConnection();
@@ -32,6 +34,12 @@ public class GameClient
     }
 
 
+
+    public ClientSimulation GetClientSimulation()
+    {
+        return clientSim;
+    }
+
     public void Login()
     {
         Message message = Message.Login();
@@ -45,5 +53,11 @@ public class GameClient
         connection.SendMessage(message);
     }
 
+    public void StartBattle(BattleStartingInfo bs)
+    {
+        clientSim = new ClientSimulation();
+        clientSim.Init();
+   
+    }
 }
 

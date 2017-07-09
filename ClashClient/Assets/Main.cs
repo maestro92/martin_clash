@@ -9,8 +9,11 @@ public class Main : MonoBehaviour
     static public Main instance;
 
     public UIManager ui;
+    public GameObject uiCanvas;
+  //  public BattleHudController hud;
 
 
+    public BattleViewController bvc;
 
     /*
     possible approaches for managing bots
@@ -70,6 +73,13 @@ public class Main : MonoBehaviour
         ui = new UIManager();
         ui.Init();
 
+//        ActivateMainScreen();
+
+        // we start with the battle screen
+        ui.Reset();
+        ui.battleScreen.Activate();
+        ui.mainMenu.Activate();
+
         InitMainGameClient();
 
 
@@ -113,8 +123,10 @@ public class Main : MonoBehaviour
 
 
         // send out your own messages
-
-        mainGameClient.Pump();
+        if (mainGameClient != null)
+        {
+            mainGameClient.Pump();
+        }
         /* 
         if not disconnected
         {
@@ -130,5 +142,29 @@ public class Main : MonoBehaviour
 
     }
 
+    void ActivateMainScreen()
+    {
+        ui.mainMenu.Activate();
+    }
+
+
+    public void GoToBattle()
+    {
+        ui.Reset();
+
+        ui.battleHud.Activate();
+
+
+        mainGameClient.StartBattle(null);
+
+        bvc = ClientUtil.Instantiate<BattleViewController>("BattleView");
+
+        bvc.Init(mainGameClient.GetClientSimulation());
+
+        bvc.gameObject.SetActive(true);
+        bvc.transform.SetAsLastSibling();
+
+    //    bvc.clientSim = mainGameClient.
+    }   
 
 }

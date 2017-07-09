@@ -32,7 +32,7 @@ public class NetGameConnection
 
 	private string m_curStringPayload;
 	public byte[] sendDataBuffer;
-	public const int sendDataBufferSize = 2048;
+//	public const int sendDataBufferSize = 2048;
 
 	public byte[] receiveDataBuffer;
 	public const int receiveDataBufferSize = 2048;
@@ -51,7 +51,7 @@ public class NetGameConnection
 
 		m_curStringPayload = "";
 
-		sendDataBuffer = new byte[sendDataBufferSize];
+		sendDataBuffer = new byte[1];
 		receiveDataBuffer = new byte[receiveDataBufferSize];
 
 
@@ -151,7 +151,7 @@ public class NetGameConnection
 
         if (tempSendList.Count > 0)
         {
-			MemsetZeroBuffer(sendDataBuffer, sendDataBufferSize);
+            MemsetZeroBuffer(sendDataBuffer, sendDataBuffer.Length);
 
 			string data = "";
 			foreach (var msg in tempSendList)

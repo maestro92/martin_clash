@@ -7,5 +7,15 @@ public class CardScreenController : MonoBehaviour
     public CardScreenController()
     {
     }
+
+    public void Init()
+    {
+
+    }
+
+    public void Activate()
+    {
+        gameObject.SetActive(true);
+    }
 }
 

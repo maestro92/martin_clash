@@ -113,7 +113,10 @@ I dedicated an entire folder for that, so please refer to eric_netcode_vs_yojimb
 ##################################################################################
 I have been spending the past two weeks understanding basic network socket programming. Mainly I have been studying Eric’s net code and reading the UNIX Network Programming, Third Edition.
 
-after some studying, I think for the server code, the main design decision is whether if I should I do a select() style or multi-threaded sockets. I think I am going with the latter cuz it is more straightforward. Usually my impression for these kind of architectural design decisions is that you just have to implement more to know more about it. It’s just like my experience with collision detections. You would really know the details and differences once you implement a few.
+after some studying, I have come to the impression that most server code is done through either doing select() style or multi-threaded sockets to handle clients. Eric’s code just does multi-threaded sockets with async receive and send for each socket
+
+
+Usually my impression for these kind of architectural design decisions is that you just have to implement more to know more about it. It’s just like my experience with collision detections. You would really know the details and differences once you implement a few.
 
 Also from my impression from googling. The architecture only really matters more when you get to thousands of connection. 
 
@@ -125,6 +128,62 @@ For this reason, I am just gonna model after Eric’s net code and do a multi-th
 ##################################### 2017/06/29 #################################
 ##################################################################################
 Instead of doing things in binary, I am just gonna have server and client send actual strings to each other to ensure that the sockets are working properly
+
+
+
+
+
+
+##################################################################################
+##################################### 2017/07/06 #################################
+##################################################################################
+It seems like the way game 2 organizes the scene is that it has three different layers 
+
+1. the main screen UI
+2. unit battle overlay 
+3. unit sprite layer
+
+we use a gameobject, to represent each of these layer respectively, and we give it a camera as well.
+
+For example:
+
+	Main
+	EventSystem
+	UICamera	<-(has camera)
+		Canvas
+			BattleScreen
+			CityScreen
+			…
+			…
+
+	BattleView
+		Hud	<—(has camera)
+			unit0overlay
+			unit1overlay
+			unit2overlay
+
+		World	<-(has camera)
+			unit0sprite
+			unit1sprite
+			unit2sprite
+
+
+so the main screen UI is all under a gameobject called UICamera. It’s just a game object with a camera component with it. It also has a Canvas Gameobject as a child, and this is in charge rendering all the main screen UI.
+
+the UICamera gameobject is tucked somewhere in the corner of the scene (let’s say at x=-3000, y=-3000, z=0). 
+
+Then we have another gameobject BattleView, that has two layers.
+
+the Hud layer is also tucked in a corner (let’s say x=500, y=500, z=0)
+and the world layer is somewhere else
+
+The main idea is that separate all these “layers” in distinct places in the scene, and assign a camera for each “layer”
+
+In short, create a game object to represent a layer, and set its position to a corner in the scene. Give it a camera and render.
+
+
+
+
 
 
 

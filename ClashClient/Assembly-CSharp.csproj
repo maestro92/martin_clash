@@ -46,16 +46,30 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Battle\BattleHudController.cs" />
+     <Compile Include="Assets\Battle\BattleViewController.cs" />
+     <Compile Include="Assets\Battle\EntityView.cs" />
      <Compile Include="Assets\BattleScreenController.cs" />
      <Compile Include="Assets\CardScreenController.cs" />
+     <Compile Include="Assets\ClientSimulation.cs" />
+     <Compile Include="Assets\ClientUtil.cs" />
      <Compile Include="Assets\GameClient.cs" />
      <Compile Include="Assets\Main.cs" />
+     <Compile Include="Assets\MainMenuController.cs" />
+     <Compile Include="Assets\Shared\BattleStartingInfo.cs" />
+     <Compile Include="Assets\Shared\Config\Config.cs" />
+     <Compile Include="Assets\Shared\Entity.cs" />
      <Compile Include="Assets\Shared\Globals.cs" />
+     <Compile Include="Assets\Shared\GridCell.cs" />
+     <Compile Include="Assets\Shared\Map.cs" />
      <Compile Include="Assets\Shared\Message.cs" />
      <Compile Include="Assets\Shared\Net\NetAddress.cs" />
      <Compile Include="Assets\Shared\Net\NetGameConnection.cs" />
      <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
+     <Compile Include="Assets\Shared\PhysBody.cs" />
      <Compile Include="Assets\Shared\Simulation.cs" />
+     <Compile Include="Assets\Shared\TowerHelper.cs" />
+     <Compile Include="Assets\Shared\TroopHelper.cs" />
      <Compile Include="Assets\Shared\Util.cs" />
      <Compile Include="Assets\UIManager.cs" />
  <Reference Include="UnityEngine.UI">

@@ -4,11 +4,13 @@ using UnityEngine;
 
 public class BattleScreenController : MonoBehaviour 
 {
-    public BattleScreenController()
+    public void Init()
     {
 
 
     }
+
+
 
 
     // sends a message to the server
@@ -16,8 +18,13 @@ public class BattleScreenController : MonoBehaviour
     {
         Main.instance.mainGameClient.SearchMatch();
         Main.instance.mainGameClient.SearchMatch();
+
+        Main.instance.GoToBattle();
     }
 
-
+    public void Activate()
+    {
+        gameObject.SetActive(true);
+    }
 }
 
