@@ -1,8 +1,15 @@
 ﻿using System;
 public class GridCell
-{
-	public GridCell()
+{	
+    public bool isWater;
+    public bool isGrass;
+ 
+
+    public GridCell()
 	{
+        
 	}
+
+
 }
 

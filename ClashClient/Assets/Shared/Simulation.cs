@@ -12,6 +12,7 @@ using System.Collections.Generic;
 // this is gonna be shared among client and server
 public class Simulation 
 {
+    public int curFrameCount;
     public Map map;
     public List<Entity> m_entities;
 
@@ -23,16 +24,23 @@ public class Simulation
     public void Init(BattleStartingInfo bs)
     {
         m_entities = new List<Entity>();
+        m_entitiesToAdd = new List<Entity>();
+        m_entitiesToRemove = new List<Entity>();
+
         // init map
 
-        List<Entity> temp = new List<Entity>();
-        Entity tower0L = Entity.GetOne(EntityType.CrownTower);
-        Entity tower0R = Entity.GetOne(EntityType.CrownTower);
-        Entity tower0K = Entity.GetOne(EntityType.KingTower);
+        map = new Map();
+        map.Init();
 
-        Entity tower1L = Entity.GetOne(EntityType.CrownTower);
-        Entity tower1R = Entity.GetOne(EntityType.CrownTower);
-        Entity tower1K = Entity.GetOne(EntityType.KingTower);
+
+        List<Entity> temp = new List<Entity>();
+        Entity tower0L = Entity.GetOne(Enums.EntityType.CrownTower);
+        Entity tower0R = Entity.GetOne(Enums.EntityType.CrownTower);
+        Entity tower0K = Entity.GetOne(Enums.EntityType.KingTower);
+
+        Entity tower1L = Entity.GetOne(Enums.EntityType.CrownTower);
+        Entity tower1R = Entity.GetOne(Enums.EntityType.CrownTower);
+        Entity tower1K = Entity.GetOne(Enums.EntityType.KingTower);
 
         temp.Add(tower0L);
         temp.Add(tower0R);
@@ -45,13 +53,16 @@ public class Simulation
         foreach (var tower in temp)
         {
             tower.Init();
-            AddEntity(tower);
+            AddEntityNow(tower);
         }
     }
 
 	// Update is called once per frame
 	void Update () 
 	{
+
+        curFrameCount++;
+
 		foreach (var entity in m_entities)
 		{
 			entity.Tick();

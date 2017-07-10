@@ -29,14 +29,18 @@ public class BattleViewController : MonoBehaviour
 
         clientSim.simulation.OnAddEntity = (entity) => {
 
-            GameObject go = new GameObject();
+            Util.LogError("Here in OnAddEntity");
+
+            GameObject go = ClientUtil.Instantiate("EntitySprite");
 
             EntityView view = go.AddComponent<EntityView>();
+            view.entity = entity;
             view.Init();
+            go.SetActive(true);
 
-
+            go.name = entity.config.displayName;
             go.transform.SetParent(worldLayer.transform);
-
+            go.transform.localPosition = Vector3.zero;
 
             entityViews.Add(view);
         };

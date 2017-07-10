@@ -24,15 +24,20 @@ public class EntityView : MonoBehaviour
 
     public void Init()
     {
-        SpriteRenderer sr = gameObject.AddComponent<SpriteRenderer>();
+        
+        SpriteRenderer sr = gameObject.GetComponent<SpriteRenderer>();
 
         if (entity.config.isTroop)
         {
-            sr.sprite = ClientUtil.GetSprite("M-6_preview.png");
+            sr.sprite = ClientUtil.GetSprite("E-100_preview");
         }
         else if (entity.config.isTower)
         {
-            sr.sprite = ClientUtil.GetSprite("T34_preview.png");
+            Util.LogError("IsTower");
+            Debug.LogError("before " + sr.sprite);
+
+            sr.sprite = ClientUtil.GetSprite("KV-2_preview");
+            Debug.LogError("after " + sr.sprite);
         }
     }
 

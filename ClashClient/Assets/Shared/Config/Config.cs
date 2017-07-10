@@ -26,15 +26,13 @@ public class Config
 
     public static void Init()
     {
-        EntityConfig config = new EntityConfig();
-
-        config = new EntityConfig(Enums.EntityType.KingTower, false, true, true);
+        EntityConfig config = new EntityConfig(Enums.EntityType.KingTower, false, true, true, "KingTower");
         entityConfigs.Add(Enums.EntityType.KingTower, config);
 
-        config = new EntityConfig(Enums.EntityType.CrownTower, false, true, true);
+        config = new EntityConfig(Enums.EntityType.CrownTower, false, true, true, "CrownTower");
         entityConfigs.Add(Enums.EntityType.CrownTower, config);
 
-        config = new EntityConfig(Enums.EntityType.Footman, true, false, true);
+        config = new EntityConfig(Enums.EntityType.Footman, true, false, true, "Footman");
         entityConfigs.Add(Enums.EntityType.Footman, config);
     }
 }
@@ -48,13 +46,14 @@ public class EntityConfig
     public bool isTroop;
     public bool isTower;
     public bool hasPhysBody;
-
-    public EntityConfig(Enums.EntityType typeIn, bool isTroopIn, bool isTowerIn, bool hasPhyBodyIn)
+    public string displayName;
+    public EntityConfig(Enums.EntityType typeIn, bool isTroopIn, bool isTowerIn, bool hasPhyBodyIn, string displayNameIn)
     {
         this.type = typeIn;
         this.isTroop = isTroopIn;
         this.isTower = isTowerIn;
         this.hasPhysBody = hasPhyBodyIn;
+        this.displayName = displayNameIn;
     }
 
 }

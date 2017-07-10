@@ -6,10 +6,9 @@ using UnityEngine;
 public class ClientUtil
 {
 
-    static public T Instantiate<T>(string prefab)
+    static public GameObject Instantiate(string prefab)
     {
-        GameObject gameObject = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>(prefab));
-        return gameObject.GetComponent<T>();
+        return GameObject.Instantiate<GameObject>(Resources.Load<GameObject>(prefab));
     }
 
     static public Sprite GetSprite(string imagePath)

@@ -47,6 +47,8 @@ public class Main : MonoBehaviour
     {
         instance = this;
 
+        Config.Init();
+
         Util.OnLog = (s) => 
             {
                 Debug.Log(s);
@@ -157,7 +159,7 @@ public class Main : MonoBehaviour
 
         mainGameClient.StartBattle(null);
 
-        bvc = ClientUtil.Instantiate<BattleViewController>("BattleView");
+        bvc = ClientUtil.Instantiate("BattleView").GetComponent<BattleViewController>();
 
         bvc.Init(mainGameClient.GetClientSimulation());
 

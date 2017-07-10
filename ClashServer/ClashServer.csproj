@@ -41,6 +41,7 @@
     <Compile Include="Shared\PhysBody.cs" />
     <Compile Include="Shared\Map.cs" />
     <Compile Include="Shared\GridCell.cs" />
+    <Compile Include="Shared\Config\Config.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />
@@ -48,6 +49,13 @@
   <ItemGroup>
     <Reference Include="System.Net" />
     <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shared\Config\Config.cs.meta" />
+    <None Include="Shared\Config\MapGenerator.py" />
+    <None Include="Shared\Config\MapGenerator.py.meta" />
+    <None Include="Shared\Config\map.txt" />
+    <None Include="Shared\Config\map.txt.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

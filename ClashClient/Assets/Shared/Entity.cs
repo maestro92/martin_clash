@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 public class Entity
 {
@@ -7,6 +8,9 @@ public class Entity
     public TroopHelper troopHelper;
     public TowerHelper towerHelper;
 
+    // need to change this to fixed point math
+    public Vector3 position;
+
 	private Entity()
 	{
 
@@ -14,9 +18,10 @@ public class Entity
 	}
 
 
-    public static Entity GetOne(EntityType type)
+    public static Entity GetOne(Enums.EntityType type)
     {
         Entity entity = new Entity();
+        entity.config = Config.entityConfigs[type];
         return entity;
     }
 
