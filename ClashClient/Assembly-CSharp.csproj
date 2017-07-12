@@ -51,6 +51,7 @@
      <Compile Include="Assets\Battle\EntityView.cs" />
      <Compile Include="Assets\BattleScreenController.cs" />
      <Compile Include="Assets\CardScreenController.cs" />
+     <Compile Include="Assets\ClientPlayerState.cs" />
      <Compile Include="Assets\ClientSimulation.cs" />
      <Compile Include="Assets\ClientUtil.cs" />
      <Compile Include="Assets\GameClient.cs" />

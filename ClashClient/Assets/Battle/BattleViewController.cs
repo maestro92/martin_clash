@@ -8,10 +8,17 @@ public class BattleViewController : MonoBehaviour
     public GameObject uiLayer;
     public GameObject worldLayer;
 
+    // left and right is from your point of view
+    public GameObject leftBridge;   
+    public GameObject rightBridge;
 
+    // such as the bridge
+    public List<EntityView> backgroundEntityViews;
     public List<EntityView> entityViews;
 
     public ClientSimulation clientSim;
+
+    public float ENTITY_VIEW_Z_OFFSET = -5;
 
     public BattleViewController()
     {
@@ -23,7 +30,7 @@ public class BattleViewController : MonoBehaviour
     {
         clientSim = clientSimIn;
 
-
+        backgroundEntityViews = new List<EntityView>();
         entityViews = new List<EntityView>();
 
 
@@ -40,7 +47,41 @@ public class BattleViewController : MonoBehaviour
 
             go.name = entity.config.displayName;
             go.transform.SetParent(worldLayer.transform);
-            go.transform.localPosition = Vector3.zero;
+           // go.transform.localPosition = Vector3.zero;
+            var curPos = view.entity.position;
+            curPos.z = ENTITY_VIEW_Z_OFFSET;
+
+            go.transform.localPosition = curPos;
+
+
+            if(entity.config.type == Enums.EntityType.CrownTower)
+            {
+                if(entity.teamId == clientSim.state.teamId)
+                {
+                    if(entity.towerHelper.isTowerA)
+                    {
+                        var tempPos = curPos;
+                        tempPos.y = 0;
+
+                        Util.LogError("\t\tisTowerA " + tempPos.ToString());
+                        leftBridge.transform.localPosition = tempPos;
+                        Util.LogError("\t\tleftBridge " + leftBridge.transform.localPosition.ToString());
+                    }
+                    else if (entity.towerHelper.isTowerB)
+                    {
+                        var tempPos = curPos;
+
+                        tempPos.y = 0;
+                            
+                        Util.LogError("\t\tisTowerB " + tempPos.ToString());
+
+                        rightBridge.transform.localPosition = tempPos;
+
+                        Util.LogError("\t\trightBridge " + rightBridge.transform.localPosition.ToString());
+                    }
+                }
+            }
+
 
             entityViews.Add(view);
         };

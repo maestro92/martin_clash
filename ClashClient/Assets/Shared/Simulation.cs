@@ -30,32 +30,62 @@ public class Simulation
         // init map
 
         map = new Map();
+        map.OnTowerPositionsReady = (towerPositions) =>
+            {
+                List<Entity> temp = new List<Entity>();
+                Entity tower0L = Entity.GetOne(Enums.EntityType.CrownTower);    
+                tower0L.teamId = Enums.Team.Team0;  
+                tower0L.towerHelper.isTowerA = true;    
+
+                Entity tower0R = Entity.GetOne(Enums.EntityType.CrownTower);    
+                tower0R.teamId = Enums.Team.Team0;  
+                tower0R.towerHelper.isTowerB = true;    
+
+                Entity tower0K = Entity.GetOne(Enums.EntityType.KingTower);     
+                tower0K.teamId = Enums.Team.Team0;  
+
+                Entity tower1L = Entity.GetOne(Enums.EntityType.CrownTower);   
+                tower1L.teamId = Enums.Team.Team1;  
+                tower1L.towerHelper.isTowerA = true;
+
+                Entity tower1R = Entity.GetOne(Enums.EntityType.CrownTower);    
+                tower1R.teamId = Enums.Team.Team1;  
+                tower1R.towerHelper.isTowerB = true;
+
+                Entity tower1K = Entity.GetOne(Enums.EntityType.KingTower);     
+                tower1K.teamId = Enums.Team.Team1;  
+
+                temp.Add(tower0L);
+                temp.Add(tower0R);
+                temp.Add(tower0K);
+
+                temp.Add(tower1L);
+                temp.Add(tower1R);
+                temp.Add(tower1K);
+
+                int i = 0;
+                foreach (var tower in temp)
+                {
+                    tower.position = towerPositions[i];
+                    Util.LogError("tower Position " + tower.position);
+                    AddEntityNow(tower);
+                    i++;
+                }
+            };
+
         map.Init();
 
 
-        List<Entity> temp = new List<Entity>();
-        Entity tower0L = Entity.GetOne(Enums.EntityType.CrownTower);
-        Entity tower0R = Entity.GetOne(Enums.EntityType.CrownTower);
-        Entity tower0K = Entity.GetOne(Enums.EntityType.KingTower);
 
-        Entity tower1L = Entity.GetOne(Enums.EntityType.CrownTower);
-        Entity tower1R = Entity.GetOne(Enums.EntityType.CrownTower);
-        Entity tower1K = Entity.GetOne(Enums.EntityType.KingTower);
-
-        temp.Add(tower0L);
-        temp.Add(tower0R);
-        temp.Add(tower0K);
-
-        temp.Add(tower1L);
-        temp.Add(tower1R);
-        temp.Add(tower1K);
-
-        foreach (var tower in temp)
-        {
-            tower.Init();
-            AddEntityNow(tower);
-        }
     }
+
+
+    private void InitTowers()
+    {
+
+
+    }
+
 
 	// Update is called once per frame
 	void Update () 

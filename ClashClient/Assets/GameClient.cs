@@ -56,8 +56,9 @@ public class GameClient
     public void StartBattle(BattleStartingInfo bs)
     {
         clientSim = new ClientSimulation();
-        clientSim.Init();
-   
+        clientSim.state = ClientPlayerState.GetOne();
+        clientSim.state.teamId = Enums.Team.Team0;
+        clientSim.Init();   
     }
 }
 

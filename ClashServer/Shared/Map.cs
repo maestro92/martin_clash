@@ -52,14 +52,26 @@ public class Map
 	public int width;
 	public int height;
 
+    public int halfWidth;
+    public int halfHeight;
 
-    private string TEAM1_KING_TOWER = "0";
-    private string TEAM1_LEFT_TOWER = "1";
-    private string TEAM1_RIGHT_TOWER = "2";
-    private string TEAM0_KING_TOWER = "3";
-    private string TEAM0_LEFT_TOWER = "4";
-    private string TEAM0_RIGHT_TOWER = "5";
+    private const string TEAM1_KING_TOWER = "0";
+    private const string TEAM1_LEFT_TOWER = "1";
+    private const string TEAM1_RIGHT_TOWER = "2";
+    private const string TEAM0_LEFT_TOWER = "3";
+    private const string TEAM0_RIGHT_TOWER = "4";
+    private const string TEAM0_KING_TOWER = "5";
 
+    private const int TEAM0_L_INDEX = 0;
+    private const int TEAM0_R_INDEX = 1;
+    private const int TEAM0_K_INDEX = 2;
+    private const int TEAM1_L_INDEX = 3;
+    private const int TEAM1_R_INDEX = 4;
+    private const int TEAM1_K_INDEX = 5;
+
+
+
+    public Action<List<Vector3>> OnTowerPositionsReady;
 
     GridCell[,] grids;
 
@@ -68,14 +80,55 @@ public class Map
 		width = DEFAULT_MAP_WIDTH;
 		height = DEFAULT_MAP_HEIGHT;
 
+        halfWidth = width / 2;
+        halfHeight = height / 2;
+
 		grids = new GridCell[width, height];
 
 	}
-
-
+        
     public void Init()
     {        
         readMapTextFile(mapString);
+    }
+
+
+    /*
+
+    converting from gridCoord To SimPos is kind of tricky, 
+    but think of it converting from one coordinate syste to another coordinate system
+
+    and the conversion is just simply an offset of +0.5 - width/2
+
+    we want the grid coordinates to indicate the grids, so the first grid should be x=0, y=0
+    and we are going to use the x=0, and y=0 to convert to simulation position. 
+
+
+         0,0    1,0    2,0    3,0    4,0    5,0    
+        ______ ______ ______ ______ ______ ______
+       |      |      |      |      |      |      |
+       |______|______|______|______|______|______|
+       |      |      |      |      |      |      |
+       |______|______|______|______|______|______|
+                                             
+
+        then if you apply a +0.5 - width/2 offeset, you get to the simulation space
+
+     -3,0   -2,0   -1,0    0,0    1,0    2,0    3,0   
+        ______ ______ ______ ______ ______ ______
+       |      |      |      |      |      |      |
+       |______|______|______|______|______|______|
+       |      |      |      |      |      |      |
+       |______|______|______|______|______|______|
+
+
+
+    */ 
+
+
+    public Vector3 GridCoordToSimPos(int x, int y)
+    {
+        return new Vector3( x - halfWidth + 0.5f, y-halfHeight + 0.5f, 0f );
     }
 
     private void readMapTextFile(string mapString)
@@ -86,52 +139,78 @@ public class Map
         string aLine, aParagraph = null;
         StringReader strReader = new StringReader(mapString);
 
-        var tower0KPositions = new List<Vector3>();
-        var tower0LPositions = new List<Vector3>();
-        var tower0RPositions = new List<Vector3>();
-        var tower1KPositions = new List<Vector3>();
-        var tower1LPositions = new List<Vector3>();
-        var tower1RPositions = new List<Vector3>();
 
+        var towerPositions = new List<List<Vector3>>();
 
-        int row, col = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            towerPositions.Add(new List<Vector3>());
+        }
+
+        int y = 0, x = 0; 
         while(true)
         {
             aLine = strReader.ReadLine();
             if(aLine != null)
             {
                 var list = aLine.Split(',');
-                col = 0;
+                x = 0;
                 foreach (var sub in list)
-                {
-                    /*
-                    switch
-*/
-                    col++;
-                    
-                }
+                {                    
+                    switch (sub)
+                    {
+                        case TEAM1_KING_TOWER:
+                            towerPositions[TEAM1_K_INDEX].Add(GridCoordToSimPos(x, y));
+                            break;
+                        case TEAM1_LEFT_TOWER:
+                            towerPositions[TEAM1_L_INDEX].Add(GridCoordToSimPos(x, y));
+                            break;
+                        case TEAM1_RIGHT_TOWER:
+                            towerPositions[TEAM1_R_INDEX].Add(GridCoordToSimPos(x, y));
+                            break;
+                        case TEAM0_KING_TOWER:
+                            towerPositions[TEAM0_K_INDEX].Add(GridCoordToSimPos(x, y));
+                            break;
+                        case TEAM0_LEFT_TOWER:
+                            towerPositions[TEAM0_L_INDEX].Add(GridCoordToSimPos(x, y));
+                            break;
+                        case TEAM0_RIGHT_TOWER:
+                            towerPositions[TEAM0_R_INDEX].Add(GridCoordToSimPos(x, y));
+                            break;
+                        default:
+//                            Console.WriteLine("Default case");
+                            break;
+                    }
 
+                    x++;                    
+                }
             }
             else
             {
                 break;
             }
-            row++;
-        }
+            y++;
+        } 
 
-        Util.LogError(aParagraph);
-     //   StreamReader sr = new StreamReader(mapString);
-        /*
-        while(!mapString.EndOfStream)
+        List<Vector3> centroids = new List<Vector3>();
+
+        foreach (var list in towerPositions)
         {
-            string line = sr.ReadLine( );
-            // Do Something with the input. 
+            Vector3 sum = Vector3.zero;
+            foreach (var pos in list)
+            {
+                sum += pos;
+            }
 
-            Util.LogError(line);
+            sum /= list.Count;
+            centroids.Add(sum);
         }
 
-        sr.Close( );  
-        */
+        if (OnTowerPositionsReady != null)
+        {
+            OnTowerPositionsReady(centroids);
+        }
+
     }
 }
 

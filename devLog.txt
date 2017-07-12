@@ -185,5 +185,24 @@ In short, create a game object to represent a layer, and set its position to a c
 
 
 
+##################################################################################
+##################################### 2017/07/12 #################################
+##################################################################################
 
+A correction fix from last post (07/06)
+the hiearchy for the battleView is actually
+
+	BattleView
+		Hud	<—(has camera)
+			unit0overlay
+			unit1overlay
+			unit2overlay
+
+		World	
+			Camera
+			unit0sprite
+			unit1sprite
+			unit2sprite
+
+the reason why we don't put the camera to the world game object is becuz this allows us to change what we want the camera to capture. If we straight up put the camera in the world gameObject, and everything else as child gameobject under world, then whenever we move the camera, all the children will move along with it
 

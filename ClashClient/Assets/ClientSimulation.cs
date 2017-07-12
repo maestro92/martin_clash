@@ -3,6 +3,7 @@
 
 public class ClientSimulation
 {
+    public ClientPlayerState state;
     public Simulation simulation;
 
     public ClientSimulation()

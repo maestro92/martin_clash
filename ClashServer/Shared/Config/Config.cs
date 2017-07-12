@@ -7,10 +7,18 @@ public class Enums
 {
     public enum EntityType
     {
+        None,
         KingTower,
         CrownTower,
         Footman,
+        Bridge,
+    }
 
+    public enum Team
+    {
+        None,
+        Team0,
+        Team1,
     }
 }
 

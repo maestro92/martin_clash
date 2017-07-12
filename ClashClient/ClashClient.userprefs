@@ -1,11 +1,8 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shared/Simulation.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shared/Map.cs">
     <Files>
-      <File FileName="Assets/GameClient.cs" Line="43" Column="1" />
-      <File FileName="Assets/Main.cs" Line="60" Column="15" />
-      <File FileName="Assets/Shared/Net/NetworkManager.cs" Line="1" Column="1" />
-      <File FileName="Assets/Shared/Simulation.cs" Line="22" Column="22" />
+      <File FileName="Assets/Shared/Map.cs" Line="119" Column="9" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
