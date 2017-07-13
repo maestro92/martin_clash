@@ -1,6 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
+
+
+using UnityEngine;
+
+
+using System.IO;
+using System.Collections;
+using System.Collections.Generic;
 
 /*
 apparently in C#, No you cannot create "free functions" in C#
@@ -14,6 +21,8 @@ https://stackoverflow.com/questions/11893404/functions-in-a-namespace
 
 class Util
 {
+
+    public static float DEGREE_TO_RADIAN = Mathf.PI / 180.0f;
 
     public static Action<string> OnLog;
     public static Action<string> OnLogWarning;

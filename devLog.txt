@@ -33,6 +33,10 @@ Link:
 	https://blog.forrestthewoods.com/managing-meta-files-in-unity-713166ee3d30
 
 
+-	the other main trick in setting up the project is the concept of hardlinking
+both server and client has the shared code folder and it is doen through hardlinking.
+for more, please visit the hardlink google drive
+
 
 ##################################################################################
 ##################################### 2017/06/06 #################################
@@ -78,16 +82,6 @@ A:	Apparently references are just dynamically linked library
 When looking for these .dll functions, use the link below
 	https://docs.unity3d.com/460/Documentation/Manual/UsingDLL.html
 
-
-
-
-
-
-##################################################################################
-##################################### 2017/06/07 #################################
-##################################################################################
-
-So I spent the whole night last night understanding the client and server folder set up, now I am going to take a crack at "redis"
 
 
 ##################################################################################
@@ -205,4 +199,49 @@ the hiearchy for the battleView is actually
 			unit2sprite
 
 the reason why we don't put the camera to the world game object is becuz this allows us to change what we want the camera to capture. If we straight up put the camera in the world gameObject, and everything else as child gameobject under world, then whenever we move the camera, all the children will move along with it
+
+
+
+
+
+
+
+
+##################################################################################
+##################################### 2017/07/13 #################################
+##################################################################################
+
+Encountered an interesting problem while working on the vector field. So the vector field is gonna be a text fiel with all the degrees
+
+Example:
+
+	0	0	90	180	180
+	0	45	90	135	180
+	0	45	90	135	180
+
+
+this is an example where the angles are converging to the top center of this vector Field
+
+So whence I parse it, I need to convert this degree to a vector3 indicating the direction, so my first approach was to straight up use tangent
+
+				float y_xRatio = Mathf.Tan(degrees)
+				Vector3 direction = new Vector3(1, y_xRatio, 0);
+
+But apparently this fails in certain scenarios. For example when degrees is 90, y_xRatio is NaN. So after looking at the Game2 code, I found a better solution
+
+				Vector3 direction = new Vector3(cos(degrees), sin(degrees), 0);
+
+that way, you never run into NaN problems.
+
+				
+
+
+So I spent the whole night last night understanding the client and server folder set up, now I am going to take a crack at "redis"
+
+
+
+
+
+
+
 

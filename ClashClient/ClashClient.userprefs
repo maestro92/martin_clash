@@ -1,8 +1,12 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shared/Map.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="../../imperial/Client/Assets/Shared/Simulation.cs">
     <Files>
-      <File FileName="Assets/Shared/Map.cs" Line="119" Column="9" />
+      <File FileName="../../imperial/Client/Assets/Shared/Simulation.cs" Line="793" Column="5" />
+      <File FileName="../../imperial/Client/Assets/Shared/Troop.cs" Line="201" Column="7" />
+      <File FileName="../../imperial/Client/Assets/Main.cs" Line="1034" Column="9" />
+      <File FileName="../../imperial/Client/Assets/Shared/SpatialIndex.cs" Line="116" Column="3" />
+      <File FileName="../../imperial/Client/Assets/Shared/DeathSpawner.cs" Line="57" Column="35" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
