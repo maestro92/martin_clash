@@ -1,24 +1,35 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine; 
+using UnityEngine.UI;
+using UnityEngine.EventSystems;// Required when using Event data.
 
-public class BattleViewController : MonoBehaviour
+public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
 
     public GameObject uiLayer;
     public GameObject worldLayer;
 
+    public Camera worldCamera;
+
     // left and right is from your point of view
     public GameObject leftBridge;   
     public GameObject rightBridge;
+    public GameObject grass;
+    public GameObject background; 
+    public GameObject river;
+
+    public GameObject tilePrefab;
 
     // such as the bridge
     public List<EntityView> backgroundEntityViews;
     public List<EntityView> entityViews;
 
+    List<GameObject> tiles = new List<GameObject>();
+
     public ClientSimulation clientSim;
 
-    public float ENTITY_VIEW_Z_OFFSET = -5;
+    public static float ENTITY_VIEW_Z_OFFSET = -5;
 
     public BattleViewController()
     {
@@ -34,9 +45,11 @@ public class BattleViewController : MonoBehaviour
         entityViews = new List<EntityView>();
 
 
+
+
         clientSim.simulation.OnAddEntity = (entity) => {
 
-            Util.LogError("Here in OnAddEntity");
+      //      Util.LogError("Here in OnAddEntity");
 
             GameObject go = ClientUtil.Instantiate("EntitySprite");
 
@@ -54,6 +67,10 @@ public class BattleViewController : MonoBehaviour
             go.transform.localPosition = curPos;
 
 
+
+
+
+
             if(entity.config.type == Enums.EntityType.CrownTower)
             {
                 if(entity.teamId == clientSim.state.teamId)
@@ -63,9 +80,9 @@ public class BattleViewController : MonoBehaviour
                         var tempPos = curPos;
                         tempPos.y = 0;
 
-                        Util.LogError("\t\tisTowerA " + tempPos.ToString());
+                //        Util.LogError("\t\tisTowerA " + tempPos.ToString());
                         leftBridge.transform.localPosition = tempPos;
-                        Util.LogError("\t\tleftBridge " + leftBridge.transform.localPosition.ToString());
+                //        Util.LogError("\t\tleftBridge " + leftBridge.transform.localPosition.ToString());
                     }
                     else if (entity.towerHelper.isTowerB)
                     {
@@ -73,11 +90,11 @@ public class BattleViewController : MonoBehaviour
 
                         tempPos.y = 0;
                             
-                        Util.LogError("\t\tisTowerB " + tempPos.ToString());
+                 //       Util.LogError("\t\tisTowerB " + tempPos.ToString());
 
                         rightBridge.transform.localPosition = tempPos;
 
-                        Util.LogError("\t\trightBridge " + rightBridge.transform.localPosition.ToString());
+                 //       Util.LogError("\t\trightBridge " + rightBridge.transform.localPosition.ToString());
                     }
                 }
             }
@@ -87,6 +104,45 @@ public class BattleViewController : MonoBehaviour
         };
 
         clientSim.simulation.Init(null);
+
+
+        Map map = clientSim.simulation.map;
+        var edge = clientSim.simulation.map.max;
+        var scale = grass.transform.localScale;
+        scale.x = edge.x;
+        scale.y = edge.y;
+        grass.transform.localScale = scale;
+
+        edge = clientSim.simulation.map.max + new Vector3(5.0f, 5.0f, 0f);
+        scale.x = edge.x;
+        scale.y = edge.y;
+        background.transform.localScale = scale;
+
+        scale = new Vector3(1.5f, 1f, 0);
+        leftBridge.transform.localScale = scale;
+        rightBridge.transform.localScale = scale;
+
+        scale = new Vector3(clientSim.simulation.map.halfWidth, 1f, 0);
+        river.transform.localScale = scale;
+
+        /*
+        for(int y=0; y<map.height; y++)
+        {
+            for(int x=0; x<map.width; x++)
+            {
+                var tile = GameObject.Instantiate<GameObject>(tilePrefab);
+                tile.transform.SetParent(worldLayer.transform);
+                tile.SetActive(true);
+                tile.transform.localPosition = map.GridCoordToSimPos(x, y);
+                tile.transform.localScale = new Vector3(0.5f, 0.5f, 1f);
+
+                tiles.Add(tile);
+            }
+        }
+*/
+
+        Util.LogError("tiles count " + tiles.Count);
+
     }
 
 
@@ -98,5 +154,40 @@ public class BattleViewController : MonoBehaviour
             ev.Tick();
         }
     }
+
+    public void OnPointerDown(PointerEventData eventData) 
+    {
+    //    Util.LogError("OnPointerDown");
+    }
+
+    public void OnPointerUp(PointerEventData eventData) 
+    {
+        if (Main.instance.ui.battleHud.TouchInPlay(eventData.position, Main.instance.uiCamera) == true)
+        {
+
+            Debug.LogError("eventData.position " + eventData.position.ToString());
+
+            if (BattleHudCardBtnController.lastSelectedBtn != null)
+            {
+
+                Vector3 worldPoint = worldCamera.ScreenToWorldPoint(eventData.position);
+//                Vector3 localWorldPoint = grass.transform.InverseTransformPoint(worldPoint);
+                Vector3 localWorldPoint = worldLayer.transform.InverseTransformPoint(worldPoint);
+                localWorldPoint.z = 0;
+
+
+            //    Debug.LogError("eventData.position " + eventData.position);
+            //    Debug.LogError("worldPoint " + localWorldPoint);
+
+                clientSim.simulation.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType, clientSim.state.teamId, localWorldPoint);
+                
+            }
+        }
+        else
+        {
+            Util.LogError("\tTouch Not in Play");
+        }
+    }
+        
 }
 

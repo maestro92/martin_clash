@@ -176,7 +176,15 @@ The main idea is that separate all these “layers” in distinct places in the 
 In short, create a game object to represent a layer, and set its position to a corner in the scene. Give it a camera and render.
 
 
+Also in the GameObject Insepctor Window, you have the option of putting things in certain Layer. So for UI stuff, you should put it in "UI" Layer
+Other stuff, you can put it in "default" Layer. Then for their each perspective Camera, you will set the Culling Mask to their layer
 
+So for example: 
+UICamera.Canvas will have Layer = "UI", 		UICamera culling Mask = "UI"
+BattleView.Hud will have Layer = "UI", 			BattleView.Hud's camera culling Mask = "UI"
+BattleView.World will have Layer = "Default",	BattleVIew.World's camera culing Mask = "Default"
+
+Then
 
 
 ##################################################################################
@@ -237,6 +245,25 @@ that way, you never run into NaN problems.
 
 
 So I spent the whole night last night understanding the client and server folder set up, now I am going to take a crack at "redis"
+
+
+
+
+
+
+
+
+##################################################################################
+##################################### 2017/07/14 #################################
+##################################################################################
+
+I now have a better understaning of how IPointerDownHandler, IPointerUpHandler.... these interfaces work. Previously that I thought that if you have a script that implement these two interfaces and attach it to any gameObject, it will work.
+
+NOT TRUE!
+
+if you don't have a button on that gameobject, you need a Box Collider that covers the size of your gameObject and a PHysics Raycaster component for the IPointer interfaces to work. So there you go..
+
+Note that PhysRaycaster will automatically add a camera to your gameObject.
 
 
 

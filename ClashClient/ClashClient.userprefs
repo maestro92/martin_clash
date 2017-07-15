@@ -1,12 +1,23 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="../../imperial/Client/Assets/Shared/Simulation.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shared/Globals.cs">
     <Files>
-      <File FileName="../../imperial/Client/Assets/Shared/Simulation.cs" Line="793" Column="5" />
-      <File FileName="../../imperial/Client/Assets/Shared/Troop.cs" Line="201" Column="7" />
-      <File FileName="../../imperial/Client/Assets/Main.cs" Line="1034" Column="9" />
-      <File FileName="../../imperial/Client/Assets/Shared/SpatialIndex.cs" Line="116" Column="3" />
-      <File FileName="../../imperial/Client/Assets/Shared/DeathSpawner.cs" Line="57" Column="35" />
+      <File FileName="Assets/Shared/Map.cs" Line="1" Column="1" />
+      <File FileName="Assets/Main.cs" Line="1" Column="1" />
+      <File FileName="Assets/Shared/AttackerHelper.cs" Line="1" Column="1" />
+      <File FileName="../../imperial/Client/Assets/Main.cs" Line="1" Column="1" />
+      <File FileName="../../imperial/Client/Assets/Shared/SpatialIndex.cs" Line="1" Column="1" />
+      <File FileName="../../imperial/Client/Assets/Shared/DeathSpawner.cs" Line="1" Column="1" />
+      <File FileName="Assets/ClientSimulation.cs" Line="1" Column="1" />
+      <File FileName="Assets/GameClient.cs" Line="1" Column="1" />
+      <File FileName="Assets/ClientPlayerState.cs" Line="1" Column="1" />
+      <File FileName="Assets/Shared/Simulation.cs" Line="122" Column="34" />
+      <File FileName="Assets/Shared/Entity.cs" Line="4" Column="15" />
+      <File FileName="Assets/Shared/TroopHelper.cs" Line="31" Column="9" />
+      <File FileName="Assets/Shared/PhysBody.cs" Line="18" Column="31" />
+      <File FileName="Assets/Shared/TowerHelper.cs" Line="19" Column="34" />
+      <File FileName="Assets/Shared/BattleStartingInfo.cs" Line="1" Column="1" />
+      <File FileName="Assets/Shared/Globals.cs" Line="20" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

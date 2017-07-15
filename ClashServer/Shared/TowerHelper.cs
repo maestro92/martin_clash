@@ -3,7 +3,7 @@
 
 public class TowerHelper
 {
-
+    public Entity entity;
     public bool isTowerA;
     public bool isTowerB;
 
@@ -13,10 +13,16 @@ public class TowerHelper
         isTowerB = false;
     }
 
-    public static TowerHelper GetOne()
+    public static TowerHelper GetOne(Entity ent)
     {
         TowerHelper towerHelper = new TowerHelper();
+        towerHelper.entity = ent;
         return towerHelper;
+    }
+
+    public void Tick()
+    {
+
     }
 }
 

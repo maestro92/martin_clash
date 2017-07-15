@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-// using UnityEngine;
+using UnityEngine;
 
 
 
@@ -88,7 +88,7 @@ public class Simulation
 
 
 	// Update is called once per frame
-	void Update () 
+	public void Update () 
 	{
 
         curFrameCount++;
@@ -107,6 +107,7 @@ public class Simulation
 
         foreach(var entity in m_entitiesToAdd)
         {
+            Util.LogError("adding entities");
             AddEntityNow(entity);
         }
         m_entitiesToAdd.Clear();
@@ -119,11 +120,42 @@ public class Simulation
 
     private void AddEntityNow(Entity entity)
     {
+        entity.simulation = this;
         m_entities.Add(entity);
 
         if (OnAddEntity != null)
         {
             OnAddEntity(entity);
         }
+    }
+
+
+    public void CastCard(Enums.CardType cardType, Enums.Team teamId, Vector3 position)
+    {
+        CardConfig config = Config.cardConfigs[cardType];
+//        Debug.LogError("cast card");
+//        Debug.LogError("\tcast count " + config.positions.Count);
+
+        foreach (var pos in config.positions)
+        {
+            Entity entity = Entity.GetOne(config.entityType);
+
+            Vector3 clampedPos = position + pos;
+
+
+            clampedPos = map.ClampSimPos(clampedPos);
+         //   Debug.LogError("\tcast point " + clampedPos);
+         //   Debug.LogError("\tgridCoord is " + map.SimPosToGridCoord(clampedPos).x + " " + map.SimPosToGridCoord(clampedPos).y);
+
+
+            DeployEntity(entity, teamId, clampedPos);
+        }
+    }
+
+    public void DeployEntity(Entity entity, Enums.Team teamId, Vector3 pos)
+    {
+        entity.position = pos;
+        entity.teamId = teamId;
+        AddEntity(entity);
     }
 }

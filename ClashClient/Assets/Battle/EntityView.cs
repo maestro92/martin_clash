@@ -33,18 +33,19 @@ public class EntityView : MonoBehaviour
         }
         else if (entity.config.isTower)
         {
-            Util.LogError("IsTower");
-            Debug.LogError("before " + sr.sprite);
+//            Util.LogError("IsTower");
+//            Debug.LogError("before " + sr.sprite);
 
             sr.sprite = ClientUtil.GetSprite("KV-2_preview");
-            Debug.LogError("after " + sr.sprite);
+//           Debug.LogError("after " + sr.sprite);
         }
     }
 
     public void Tick()
     {
-
-
+        var curPos = entity.position;
+        curPos.z = BattleViewController.ENTITY_VIEW_Z_OFFSET;
+        transform.localPosition = curPos;
     }
 }
 

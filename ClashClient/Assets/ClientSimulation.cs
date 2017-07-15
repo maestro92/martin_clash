@@ -17,5 +17,10 @@ public class ClientSimulation
 
 
     }
+
+    public void Tick()
+    {
+        simulation.Update();
+    }
 }
 

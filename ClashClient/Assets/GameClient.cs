@@ -31,6 +31,11 @@ public class GameClient
     public void Pump()
     {
         connection.Pump();
+
+        if (clientSim != null)
+        {
+            clientSim.Tick();
+        }
     }
 
 

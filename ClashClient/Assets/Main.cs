@@ -10,6 +10,7 @@ public class Main : MonoBehaviour
 
     public UIManager ui;
     public GameObject uiCanvas;
+    public Camera uiCamera;
   //  public BattleHudController hud;
 
 
