@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\AIController.cs" />
      <Compile Include="Assets\Battle\BattleHudCardBtnController.cs" />
      <Compile Include="Assets\Battle\BattleHudController.cs" />
      <Compile Include="Assets\Battle\BattleViewController.cs" />

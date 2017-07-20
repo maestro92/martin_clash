@@ -20,10 +20,12 @@ public class GameClient
     {
         connection = new NetGameConnection();
         connection.InitClientSideSocket();
+        connection.OnHandleMessage = OnHandledMessage;
 
         Util.Log("Esablishing Connection to " + hostIPAddress);
 
         connection.ConnectToHost(hostIPAddress, NetworkManager.SERVER_PORT);
+
         Util.Log("StartNetworkSession");
     }
 
@@ -38,6 +40,33 @@ public class GameClient
         }
     }
 
+
+
+    public void OnHandledMessage(NetGameConnection connection, Message message)
+    {
+        if (message.type == Message.Type.None)
+        {
+            Util.LogError("Message type is None");
+            return;
+        }
+
+        switch (message.type)
+        {
+            case Message.Type.ServerConnectResponse:
+                Util.LogError("ServerClientResponse");
+                Message loginRequest = Message.Login();
+                connection.SendMessage(loginRequest);
+                break;
+
+            case Message.Type.LoginResponse:
+                Util.LogError("LoginResponse");
+                break;
+                         
+            default:
+                break;
+        }
+
+    }
 
 
     public ClientSimulation GetClientSimulation()
@@ -56,6 +85,13 @@ public class GameClient
         Debug.LogError("SearchMatch()");
         Message message = Message.SearchMessage();
         connection.SendMessage(message);
+
+
+        // start up an AI
+        GameClient aiClient = new GameClient();
+        aiClient.StartNetworkSession(Main.instance.networkManager.GetServerIPAddress());
+
+
     }
 
     public void StartBattle(BattleStartingInfo bs)

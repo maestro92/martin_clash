@@ -33,7 +33,7 @@ the basic flow is below
 */
 
 
-
+/*
 public class StateObject
 {
 	// client socket
@@ -48,6 +48,7 @@ public class StateObject
 	// Received data string
 	public StringBuilder sb = new StringBuilder();
 }
+*/
 
 public struct ServerConfig
 {
@@ -70,7 +71,7 @@ public class Server
 	private Thread m_listenerThread;
 	public Socket m_listenerSocket;
 
-	public Dictionary<ServerClientHandle, NetGameConnection> connections;
+	public Dictionary<NetGameConnection, ServerClientHandle> connections;
 
 	ServerConfig m_serverConfig;
 
@@ -78,6 +79,8 @@ public class Server
 	private int m_clientIdCounter;
 
 	private Object m_connectionLock = new Object();
+
+	private MatchMaker m_matchMaker;
 
 	// Thread signal.  
 	public static ManualResetEvent m_allDone = new ManualResetEvent(false);
@@ -87,7 +90,11 @@ public class Server
 		m_serverConfig = new ServerConfig(SERVER_BACKLOG);
 		m_isRunning = false;
 		m_clientIdCounter = 0;
+
+		m_matchMaker = new MatchMaker();
 		Console.WriteLine("init server");
+
+
 	}
 
 	// set up the IP address and port, then start accepting commands
@@ -104,7 +111,7 @@ public class Server
 
 		Util.LogError(m_hostingNetAddress.GetIPAddress().ToString());
 
-		connections = new Dictionary<ServerClientHandle, NetGameConnection>();
+		connections = new Dictionary<NetGameConnection, ServerClientHandle>();
 		// handlerSockets = new Dictionary<ServerClientHandle, Socket>();
 
 		IPEndPoint hostingSocketEndPoint = new IPEndPoint(m_hostingNetAddress.GetIPAddress(), m_hostingNetAddress.GetPort());
@@ -172,8 +179,11 @@ public class Server
 			m_clientIdCounter++;
 		}
 
-		ServerClientHandle client = new ServerClientHandle(newId);
 		NetGameConnection connection = new NetGameConnection();
+		ServerClientHandle client = new ServerClientHandle(newId);
+
+		client.SetGameConnection(connection);
+
 		connection.OnHandleMessage = OnHandleMessage;
 		connection.InitServerSideSocket(handlerSocket);
 
@@ -181,7 +191,7 @@ public class Server
 
 		lock (m_connectionLock)
 		{
-			connections.Add(client, connection);
+			connections.Add(connection, client);
 		}
 	}
 
@@ -197,7 +207,7 @@ public class Server
 		{
 			foreach (var kvp in connections)
 			{
-				NetGameConnection connection = kvp.Value;			
+				NetGameConnection connection = kvp.Key;			
 				connection.Pump();
 			}
 		}
@@ -208,7 +218,7 @@ public class Server
 	{
 		foreach (var kvp in connections)
 		{
-			NetGameConnection connection = kvp.Value;
+			NetGameConnection connection = kvp.Key;
 			connection.Shutdown();
 		}
 
@@ -220,7 +230,21 @@ public class Server
 	}
 
 
-	public void OnHandleMessage(Message message)
+
+	public ServerClientHandle ResolveClient(NetGameConnection connection)
+	{
+		if (connections.ContainsKey(connection))
+		{
+			return connections[connection];
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	// this function has lots of early returns
+	public void OnHandleMessage(NetGameConnection connection, Message message)
 	{
 		if (message.type == Message.Type.None)
 		{
@@ -228,14 +252,38 @@ public class Server
 			return;
 		}
 
+		ServerClientHandle currentClient = ResolveClient(connection);
+
+		if (currentClient == null)
+		{
+			return;
+		}
+
 		switch (message.type)
 		{
+			case Message.Type.ClientConnectRequest:
+				Util.LogError("ClientConnectRequest");
+
+				// send back client the ConnectResponse
+
+				Message response = Message.ServerConnectResponse();
+				connection.SendMessage(response);
+				break;
+
+			case Message.Type.ServerConnectResponse:
+				Util.LogError("ServerClientResponse");
+				break;
+
 			case Message.Type.Login:
 				Util.LogError("Login");
+				Message loginResponse = Message.LoginResponse();
+				connection.SendMessage(loginResponse);
 				break;
 
 			case Message.Type.SearchMatch:
 				Util.LogError("SearchMatch");
+				// put player in queue
+				m_matchMaker.AddPlayerToQueue(currentClient);
 				break;
 
 			default:

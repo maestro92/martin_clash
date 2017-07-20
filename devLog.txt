@@ -75,13 +75,19 @@ A:	Apparently references are just dynamically linked library
 
 	https://www.youtube.com/watch?v=5QXav2r1piE
 
-	if you look at the video from the above link, you can see that it is a tutorial teaching how to ad a .dll file
+	if you look at the video from the above link, you can see that it is a tutorial teaching how to add a .dll file in visual studio
 
 
 
-When looking for these .dll functions, use the link below
+When looking for these .dll files on a mac or windows, use the link below
 	https://docs.unity3d.com/460/Documentation/Manual/UsingDLL.html
 
+Make sure you read carefully, especially the part 
+
+		(you can see the internal structure of the bundle by using the Show Package Contents command from the contextual menu; 
+		right click or ctrl-click the Unity application)
+
+I just right clicked on the Unity application and selected "Show Package Contents" in Finder and that worked
 
 
 ##################################################################################
@@ -264,6 +270,34 @@ NOT TRUE!
 if you don't have a button on that gameobject, you need a Box Collider that covers the size of your gameObject and a PHysics Raycaster component for the IPointer interfaces to work. So there you go..
 
 Note that PhysRaycaster will automatically add a camera to your gameObject.
+
+
+
+
+##################################################################################
+##################################### 2017/07/17 #################################
+##################################################################################
+
+So I am working battle against AI and I did some thinking about how ai management works. In Game2, we have our AI running just as just another client on your Unity Editor. So essentially our server doens't "Really" know who is a player and who is an AI. The Simulation is also agnostic of who is an AI, who is a player. 
+
+I asked some other engineers about what was the reasoning behind managing our AI this way. And the engineers says it is mainly for simplicity at that time. In the end, you just need a place to run your AI code somewhere, you can put it on client, you can put it on the server, or you can even run it at a third (for example, the server spinning off bots on another computer and run AI bots there). It is all about AI management.
+
+As I said though, facing all these different approaches, just start with one and see how it does. and I am going with the "AI as a client" approach for now.
+
+
+
+
+
+
+##################################################################################
+##################################### 2017/07/19 #################################
+##################################################################################
+
+My current plan is to get Battle With AI working. And it has gotten to the point where I actually need to send BattleStartingInfo from the server to the client, which means I need to get the Serializer Working.
+
+My plan is to just use Binary and ignore the Json, like how Eric has it set up now.
+
+So that is gonna be my next step.
 
 
 

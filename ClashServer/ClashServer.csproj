@@ -42,6 +42,11 @@
     <Compile Include="Shared\Map.cs" />
     <Compile Include="Shared\GridCell.cs" />
     <Compile Include="Shared\Config\Config.cs" />
+    <Compile Include="Shared\BattleStartingInfo.cs" />
+    <Compile Include="Shared\AttackerHelper.cs" />
+    <Compile Include="Shared\TowerHelper.cs" />
+    <Compile Include="Shared\TroopHelper.cs" />
+    <Compile Include="MatchMaker.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />
@@ -49,6 +54,9 @@
   <ItemGroup>
     <Reference Include="System.Net" />
     <Reference Include="System" />
+    <Reference Include="UnityEngine">
+      <HintPath>UnityEngine.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shared\Config\Config.cs.meta" />
@@ -56,6 +64,10 @@
     <None Include="Shared\Config\MapGenerator.py.meta" />
     <None Include="Shared\Config\map.txt" />
     <None Include="Shared\Config\map.txt.meta" />
+    <None Include="Shared\BattleStartingInfo.cs.meta" />
+    <None Include="Shared\AttackerHelper.cs.meta" />
+    <None Include="Shared\TowerHelper.cs.meta" />
+    <None Include="Shared\TroopHelper.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

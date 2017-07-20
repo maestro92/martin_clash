@@ -12,8 +12,12 @@ public class Message
     public enum Type
     {
         None,
+        ClientConnectRequest,   // client to server
+        ServerConnectResponse,  // server to client
         Login,
+        LoginResponse,
         SearchMatch,
+		BattleStartingInfo,
     };
 
     public Type type;
@@ -55,6 +59,20 @@ public class Message
 	}
 
 
+	public static Message BattleStartingInfo()
+	{
+		Message message = Message.GetOne(Type.BattleStartingInfo);
+		message.data = "BattleStartingInfo";
+		return message;
+	}
+
+
+	public static Message SearchMessage()
+    {
+        Message message = Message.GetOne(Type.SearchMatch);
+        message.data = "SearchMatch";
+        return message;
+    }
 
     public static Message Login()
     {
@@ -63,11 +81,24 @@ public class Message
         return message;
     }
 
-
-    public static Message SearchMessage()
+    public static Message LoginResponse()
     {
-        Message message = Message.GetOne(Type.SearchMatch);
-        message.data = "SearchMatch";
+        Message message = Message.GetOne(Type.LoginResponse);
+        message.data = "LoginResponse";
+        return message;
+    }
+
+    public static Message ClientConnectRequest()
+    {
+        Message message = Message.GetOne(Type.ClientConnectRequest);
+        message.data = "Client Connect Request";
+        return message;
+    }
+
+    public static Message ServerConnectResponse()
+    {
+        Message message = Message.GetOne(Type.ServerConnectResponse);
+        message.data = "Server Connect Response";
         return message;
     }
 

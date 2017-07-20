@@ -33,11 +33,7 @@ public class EntityView : MonoBehaviour
         }
         else if (entity.config.isTower)
         {
-//            Util.LogError("IsTower");
-//            Debug.LogError("before " + sr.sprite);
-
             sr.sprite = ClientUtil.GetSprite("KV-2_preview");
-//           Debug.LogError("after " + sr.sprite);
         }
     }
 

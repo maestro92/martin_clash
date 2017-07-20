@@ -38,7 +38,7 @@ public class NetGameConnection
 	public const int receiveDataBufferSize = 2048;
 
 
-	public Action<Message> OnHandleMessage;
+	public Action<NetGameConnection, Message> OnHandleMessage;
 	public NetGameConnection()
     {
 		//        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
@@ -107,8 +107,28 @@ public class NetGameConnection
 
 
     public void ConnectToHost(string ipAddress, int port)
-    {        
-        m_rawTcpSocket.Connect(ipAddress, port);
+    {   
+        // this is a blocking call
+
+        bool connected = false; 
+        try
+        {
+            
+            m_rawTcpSocket.Connect(ipAddress, port);
+            connected = true;
+        }
+        catch( System.Net.Sockets.SocketException socketExceptionIn )
+        {
+            Util.LogError("Socket Exception, can't connect");
+        }
+
+        if (connected)
+        {
+            // if socket connection succeeds, start sending a connection request
+
+            Message message = Message.ClientConnectRequest();
+            SendMessage(message);
+        }
     }
 
 
@@ -247,7 +267,7 @@ public class NetGameConnection
 
 				if (OnHandleMessage != null)
 				{
-					OnHandleMessage(message);
+					OnHandleMessage(this, message);
 				}
 				m_receiveMessageList.RemoveAt(0);
 			}
@@ -280,6 +300,7 @@ public class NetGameConnection
     {
 		SocketSend();
 		SocketReceive();
+		ProcessIncomingMessages();
 
         // listen for stuff
 

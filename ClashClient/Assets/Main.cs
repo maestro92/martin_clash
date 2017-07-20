@@ -36,11 +36,10 @@ public class Main : MonoBehaviour
      */ 
 
 
-    NetworkManager networkManager;
+    public NetworkManager networkManager;
 
     public int TARGET_FRAME_RATE = 60;
 
-    // List<ClientSession> clientSessions;
     public GameClient mainGameClient;
 
 	// Use this for initialization

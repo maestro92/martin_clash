@@ -7,8 +7,6 @@ using UnityEngine;
 
 
 
-
-
 // this is gonna be shared among client and server
 public class Simulation 
 {
