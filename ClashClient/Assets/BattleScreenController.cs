@@ -17,7 +17,6 @@ public class BattleScreenController : MonoBehaviour
     public void SearchForBattle()
     {
         Main.instance.mainGameClient.SearchMatch();
-        Main.instance.mainGameClient.SearchMatch();
 
         Main.instance.GoToBattle();
     }

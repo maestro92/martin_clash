@@ -3,9 +3,8 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.20506</ProductVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <RootNamespace></RootNamespace>
     <ProjectGuid>{82E9A2EE-FC20-1EB8-D961-CFEB6BF2AD08}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -34,68 +33,72 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.XML" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="UnityEngine">
-      <HintPath>/Applications/Unity55/Unity.app/Contents/Managed/UnityEngine.dll</HintPath>
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEditor">
-      <HintPath>/Applications/Unity55/Unity.app/Contents/Managed/UnityEditor.dll</HintPath>
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\Managed\UnityEditor.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\AIController.cs" />
-     <Compile Include="Assets\Battle\BattleHudCardBtnController.cs" />
-     <Compile Include="Assets\Battle\BattleHudController.cs" />
-     <Compile Include="Assets\Battle\BattleViewController.cs" />
-     <Compile Include="Assets\Battle\EntityView.cs" />
-     <Compile Include="Assets\BattleScreenController.cs" />
-     <Compile Include="Assets\CardScreenController.cs" />
-     <Compile Include="Assets\ClientPlayerState.cs" />
-     <Compile Include="Assets\ClientSimulation.cs" />
-     <Compile Include="Assets\ClientUtil.cs" />
-     <Compile Include="Assets\GameClient.cs" />
-     <Compile Include="Assets\Main.cs" />
-     <Compile Include="Assets\MainMenuController.cs" />
-     <Compile Include="Assets\Shared\AttackerHelper.cs" />
-     <Compile Include="Assets\Shared\BattleStartingInfo.cs" />
-     <Compile Include="Assets\Shared\Card.cs" />
-     <Compile Include="Assets\Shared\Config\Config.cs" />
-     <Compile Include="Assets\Shared\Entity.cs" />
-     <Compile Include="Assets\Shared\Globals.cs" />
-     <Compile Include="Assets\Shared\GridCell.cs" />
-     <Compile Include="Assets\Shared\Map.cs" />
-     <Compile Include="Assets\Shared\Message.cs" />
-     <Compile Include="Assets\Shared\Net\NetAddress.cs" />
-     <Compile Include="Assets\Shared\Net\NetGameConnection.cs" />
-     <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
-     <Compile Include="Assets\Shared\PhysBody.cs" />
-     <Compile Include="Assets\Shared\Simulation.cs" />
-     <Compile Include="Assets\Shared\TowerHelper.cs" />
-     <Compile Include="Assets\Shared\TroopHelper.cs" />
-     <Compile Include="Assets\Shared\Util.cs" />
-     <Compile Include="Assets\UIManager.cs" />
-     <None Include="Assets\Shared\Config\map.txt" />
- <Reference Include="UnityEngine.UI">
- <HintPath>/Applications/Unity55/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.Networking">
- <HintPath>/Applications/Unity55/Unity.app/Contents/UnityExtensions/Unity/Networking/UnityEngine.Networking.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.PlaymodeTestsRunner">
- <HintPath>/Applications/Unity55/Unity.app/Contents/UnityExtensions/Unity/PlaymodeTestsRunner/UnityEngine.PlaymodeTestsRunner.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.Analytics">
- <HintPath>/Applications/Unity55/Unity.app/Contents/UnityExtensions/Unity/UnityAnalytics/UnityEngine.Analytics.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.HoloLens">
- <HintPath>/Applications/Unity55/Unity.app/Contents/UnityExtensions/Unity/UnityHoloLens/RuntimeEditor/UnityEngine.HoloLens.dll</HintPath>
- </Reference>
- <Reference Include="UnityEngine.VR">
- <HintPath>/Applications/Unity55/Unity.app/Contents/UnityExtensions/Unity/UnityVR/RuntimeEditor/UnityEngine.VR.dll</HintPath>
- </Reference>
+    <Compile Include="Assets\AIController.cs" />
+    <Compile Include="Assets\Battle\BattleHudCardBtnController.cs" />
+    <Compile Include="Assets\Battle\BattleHudController.cs" />
+    <Compile Include="Assets\Battle\BattleViewController.cs" />
+    <Compile Include="Assets\Battle\EntityView.cs" />
+    <Compile Include="Assets\BattleScreenController.cs" />
+    <Compile Include="Assets\CardScreenController.cs" />
+    <Compile Include="Assets\ClientPlayerState.cs" />
+    <Compile Include="Assets\ClientSimulation.cs" />
+    <Compile Include="Assets\ClientUtil.cs" />
+    <Compile Include="Assets\GameClient.cs" />
+    <Compile Include="Assets\Main.cs" />
+    <Compile Include="Assets\MainMenuController.cs" />
+    <Compile Include="Assets\Shared\AttackerHelper.cs" />
+    <Compile Include="Assets\Shared\BattleStartingInfo.cs" />
+    <Compile Include="Assets\Shared\Card.cs" />
+    <Compile Include="Assets\Shared\Config\Config.cs" />
+    <Compile Include="Assets\Shared\Entity.cs" />
+    <Compile Include="Assets\Shared\Globals.cs" />
+    <Compile Include="Assets\Shared\GridCell.cs" />
+    <Compile Include="Assets\Shared\Map.cs" />
+    <Compile Include="Assets\Shared\Message.cs" />
+    <Compile Include="Assets\Shared\Net\NetAddress.cs" />
+    <Compile Include="Assets\Shared\Net\NetBuffer.cs" />
+    <Compile Include="Assets\Shared\Net\NetGameConnection.cs" />
+    <Compile Include="Assets\Shared\Net\NetSerializer.cs" />
+    <Compile Include="Assets\Shared\Net\NetUtil.cs" />
+    <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
+    <Compile Include="Assets\Shared\PhysBody.cs" />
+    <Compile Include="Assets\Shared\Simulation.cs" />
+    <Compile Include="Assets\Shared\TowerHelper.cs" />
+    <Compile Include="Assets\Shared\TroopHelper.cs" />
+    <Compile Include="Assets\Shared\Util.cs" />
+    <Compile Include="Assets\UIManager.cs" />
+    <None Include="Assets\Shared\Config\map.txt" />
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Networking">
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\UnityExtensions\Unity\Networking\UnityEngine.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PlaymodeTestsRunner">
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\UnityExtensions\Unity\PlaymodeTestsRunner\UnityEngine.PlaymodeTestsRunner.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.Analytics">
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\UnityExtensions\Unity\UnityAnalytics\UnityEngine.Analytics.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.HoloLens">
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\UnityExtensions\Unity\UnityHoloLens\RuntimeEditor\UnityEngine.HoloLens.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.VR">
+      <HintPath>..\..\..\..\..\Applications\Unity5_5\Unity.app\Contents\UnityExtensions\Unity\UnityVR\RuntimeEditor\UnityEngine.VR.dll</HintPath>
+    </Reference>
+    <Compile Include="Assets\LoadingPageController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -105,5 +108,4 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  
 </Project>

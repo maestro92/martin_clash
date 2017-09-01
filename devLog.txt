@@ -302,6 +302,31 @@ So that is gonna be my next step.
 
 
 
+##################################################################################
+##################################### 2017/07/22 #################################
+##################################################################################
+
+I think by now, I have read enough of game network programming serializer/deserialer tutorials. I have also read in some detail
+Eric Milota_s code, and alot of them have a lot of the same thing. To summarise, the serializer class pretty much just manages a byte buffer that holds a stream of data.
+
+I will say it again,
+
+	you are just managing a byte buffer (byte array) in which you will write and read a stream of data from it.
+
+Across all the tutorials I have read, that is pretty much what it does.
+
+As an exercise, I shall attempt to code my own.
+
+
+
+
+
+
+
+
+
+
+
 
 
 

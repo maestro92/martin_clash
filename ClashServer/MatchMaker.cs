@@ -37,9 +37,10 @@ public class MatchMaker
 			bs.AddPlayer(Enums.Team.Team0, playerInfo0);
 			bs.AddPlayer(Enums.Team.Team1, playerInfo1);
 
-			Message message = Message.SearchMessage
+			Message message = Message.BattleStartingInfo(bs);
 
-			player0.GetGameConnection().SendMessage
+			player0.GetGameConnection().SendMessage(message);
+			player1.GetGameConnection().SendMessage(message);
 
 		}
 

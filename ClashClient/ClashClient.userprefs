@@ -1,16 +1,13 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Shared/Message.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="../../imperial/Client/Assets/Shared/Simulation.cs">
     <Files>
-      <File FileName="Assets/Shared/Net/NetGameConnection.cs" Line="37" Column="34" />
-      <File FileName="Assets/Shared/Message.cs" Line="97" Column="5" />
-      <File FileName="../../imperial/Client/Assets/Main.cs" Line="1194" Column="30" />
-      <File FileName="../../imperial/Client/Assets/Shared/Config.cs" Line="1" Column="1" />
-      <File FileName="../../imperial/Client/Assets/Shared/Simulation.cs" Line="878" Column="5" />
-      <File FileName="../../imperial/Client/Assets/Shared/Net/NetGameConnection.cs" Line="1747" Column="72" />
-      <File FileName="../../imperial/Client/Assets/Shared/Net/NetGameSysMsg.cs" Line="105" Column="44" />
-      <File FileName="Assets/Main.cs" Line="91" Column="5" />
-      <File FileName="Assets/GameClient.cs" Line="57" Column="56" />
+      <File FileName="Assets/Shared/Net/NetSerializer.cs" Line="213" Column="65" />
+      <File FileName="Assets/Shared/Message.cs" Line="79" Column="1" />
+      <File FileName="Assets/Shared/Net/NetGameConnection.cs" Line="147" Column="9" />
+      <File FileName="../../imperial/Client/Assets/Shared/Simulation.cs" Line="663" Column="19" />
+      <File FileName="../../imperial/Client/Assets/Shared/Deck.cs" Line="1" Column="1" />
+      <File FileName="../../imperial/Client/Assets/Shared/Card.cs" Line="264" Column="18" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

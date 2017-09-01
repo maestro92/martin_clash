@@ -22,6 +22,10 @@ public class Message
 
     public Type type;
     public string data; // using string 
+
+	public BattleStartingInfo bs;
+	public int mapId;	// just testing writeIn using this
+
     private Message()
     {
         type = Type.None;
@@ -58,21 +62,20 @@ public class Message
 		return message;
 	}
 
-
-	public static Message BattleStartingInfo()
+	public static Message SearchMessage()
 	{
-		Message message = Message.GetOne(Type.BattleStartingInfo);
-		message.data = "BattleStartingInfo";
+		Message message = Message.GetOne(Type.SearchMatch);
 		return message;
 	}
 
 
-	public static Message SearchMessage()
-    {
-        Message message = Message.GetOne(Type.SearchMatch);
-        message.data = "SearchMatch";
-        return message;
-    }
+	public static Message BattleStartingInfo(BattleStartingInfo bs)
+	{
+		Message message = Message.GetOne(Type.BattleStartingInfo);
+		message.bs = bs;
+		return message;
+	}
+
 
     public static Message Login()
     {
@@ -102,6 +105,41 @@ public class Message
         return message;
     }
 
+	public void Serialize(NetSerializer writer)
+	{
+		switch (type)
+		{
+			case Message.Type.SearchMatch:
+
+			break;
+
+			case Message.Type.BattleStartingInfo:
+				//	writer.WriteOne<BattleStartingInfo>("battleStartingInfo", bs);
+
+				writer.WriteInt32("mapId", mapId);
+				break;
+				
+
+
+
+		}
+	}
+
+	public void Deserializer(NetSerializer reader)
+	{
+		switch (type)
+		{
+			case Message.Type.SearchMatch:
+
+				break;
+				
+			case Message.Type.BattleStartingInfo:
+				mapId = reader.ReadInt32("mapId");
+				break;
+		}
+	}
+
+	/*
 	public string Serialize()
 	{
 		return ((int)(type)).ToString() + MSG_TYPE_DIVIDER + data + MSG_DIVIDER;
@@ -119,7 +157,7 @@ public class Message
 		type = (Message.Type)(numType);
 		data = strData;
 	}
-
+	*/
 	/*
 	public void Serialize(string stream)
 	{

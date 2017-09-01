@@ -15,7 +15,7 @@ From what I have seen, we pretty much dedicate an entire thread,
 
 
 
-the basic flow is below
+The structure for my code
 
 	// init ip address and port
 	server.init()
@@ -28,8 +28,11 @@ the basic flow is below
 
 	while()
 	{
-		accepting commands
+		accept Client connections
 	}
+
+
+
 */
 
 
@@ -150,7 +153,6 @@ public class Server
 
 				Util.Log(" >> got a connection");
 
-
 				Thread clientThread = new Thread(() => spawnHandleClientThread(handlerSocket));
 				clientThread.Start();
 			}
@@ -182,19 +184,27 @@ public class Server
 		NetGameConnection connection = new NetGameConnection();
 		ServerClientHandle client = new ServerClientHandle(newId);
 
+		// IPEndPoint: Represents a network endpoint as an IP address and a port number.
+		// the Microsoft Examples casts them to IPEndPoint, so we'll do the same
+		// https://msdn.microsoft.com/en-us/library/system.net.sockets.socket.remoteendpoint(v=vs.110).aspx
+		IPEndPoint remoteIpEndPoint = (IPEndPoint)(handlerSocket.RemoteEndPoint);
+
+		string remoteAddressAndPortString = remoteIpEndPoint.Address.ToString() + ":" + remoteIpEndPoint.Port.ToString();
+		string connectionName = remoteAddressAndPortString;
+
 		client.SetGameConnection(connection);
 
 		connection.OnHandleMessage = OnHandleMessage;
+		connection.SetConnectionName(connectionName);
 		connection.InitServerSideSocket(handlerSocket);
 
-
+		Util.Log("Handle Client Connection:  Client@:" + remoteAddressAndPortString + ", connectionName=" + connection.GetConnectionName());
 
 		lock (m_connectionLock)
 		{
 			connections.Add(connection, client);
 		}
 	}
-
 
 
 

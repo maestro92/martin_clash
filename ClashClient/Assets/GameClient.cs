@@ -29,7 +29,10 @@ public class GameClient
         Util.Log("StartNetworkSession");
     }
 
+    // There are multiple ways to organize it
+    // game2 does it so that connection.Pump is in Update(), while clientSim.Tick() is in FixedUpdate()
 
+    // we will see how good each "orgnaization" of code is
     public void Pump()
     {
         connection.Pump();
@@ -90,8 +93,6 @@ public class GameClient
         // start up an AI
         GameClient aiClient = new GameClient();
         aiClient.StartNetworkSession(Main.instance.networkManager.GetServerIPAddress());
-
-
     }
 
     public void StartBattle(BattleStartingInfo bs)

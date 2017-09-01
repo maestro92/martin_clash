@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class UIManager
 {
+    public LoadingPageController loadingScreen;
     public MainMenuController mainMenu;
     public BattleScreenController battleScreen;
     public CardScreenController cardScreen;   

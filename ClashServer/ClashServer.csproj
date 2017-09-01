@@ -47,6 +47,9 @@
     <Compile Include="Shared\TowerHelper.cs" />
     <Compile Include="Shared\TroopHelper.cs" />
     <Compile Include="MatchMaker.cs" />
+    <Compile Include="Shared\Net\NetSerializer.cs" />
+    <Compile Include="Shared\Net\NetBuffer.cs" />
+    <Compile Include="Shared\Net\NetUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />
