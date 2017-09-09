@@ -172,40 +172,52 @@ public class NetSerializer
 		m_writeContextList.RemoveAt(m_writeContextList.Count - 1);
 
 		int blockSize = m_writeBuffer.GetPosition() - writeContext.writerDataPos;
-
+		Util.Log("WriteObject BlockSize is " + blockSize.ToString());
 		m_writeBuffer.WriteInt32AtIndex(writeContext.writerHeaderPos, blockSize);
 	
 	}
 
 
 
-	public void ReadOne<T>(T itemIn, string logVarNameIn) where T : class, INetSerializer
+	public T ReadOne<T>(ObjectFactory<T> objectFactory, string logVarNameIn) where T : class, INetSerializer
 	{
-		BeginWriteObject(logVarNameIn);
+		BeginReadObject(logVarNameIn);
 
-		itemIn.Serialize(this);
+		T itemIn = objectFactory();
+        Util.LogError("before itemIn Deserialize ");
+        itemIn.Deserialize(this);
+        Util.LogError("after itemIn Deserialize ");
 
-		EndWriteObject();
+		EndReadObject();
+        Util.LogError("Finished EndReadObject ");
+        Util.Log("Finished EndReadObject ");
+
+		return itemIn;
 	}
 
 
 	public void BeginReadObject(string objectNameIn)
 	{
-		if (m_mode != NetSerializationMode.Reader)
+        Util.Log("BeginReadObject ");
+
+        if (m_mode != NetSerializationMode.Reader)
 		{
 			ThrowException("NetSerializer.BeginReadObject(): Not in reader mode!!!!");
 		}
 		int blockSize = m_readBuffer.ReadInt32();
-
+		Util.Log("ReadObject BlockSize is " + blockSize.ToString());
 		int headerPos = m_readBuffer.GetPosition();
 		int endPos = headerPos + blockSize;
 
 		ReadContext readContext = new ReadContext(objectNameIn, m_readContextList.Count + 1, headerPos, endPos);
-
+        m_readContextList.Add(readContext);
 	}
 
 	public void EndReadObject()
 	{
+        Util.LogError("EndReadObject ");
+        Util.LogError("m_readContextList.Count " + m_readContextList.Count.ToString());
+
 		var readContext = m_readContextList[m_readContextList.Count - 1];
 		m_readContextList.RemoveAt(m_readContextList.Count - 1);
 	}
@@ -217,8 +229,19 @@ public class NetSerializer
 			ThrowException("NetSerializer.WriteInt32(): Not in writer mode!!!!");
 		}
 
-		m_writeBuffer.WriteInt32AtIndex(value, index);
+        m_writeBuffer.WriteInt32AtIndex(index, value);
 	}
+
+    public void WriteEnumAsInt<T>(T valueIn, string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Writer)
+        {
+            ThrowException("NetSerializer.WriteInt32(): Not in writer mode!!!!");
+        }
+
+        Int32 intval = (Int32) Convert.ToInt32( valueIn );
+        WriteInt32(varLogName, intval);
+    }
 
 	public void WriteInt32(string varLogName, int value)
 	{
@@ -229,6 +252,30 @@ public class NetSerializer
 
 		m_writeBuffer.WriteInt32(value);
 	}
+
+
+    public T ReadEnumAsInt<T>(string varLogName)
+    {
+		if (m_mode != NetSerializationMode.Reader)
+        {
+            ThrowException("NetSerializer.ReadEnumAsInt(): Not in reader mode!!!!");
+        }
+        T returnValue = default( T );
+        Int32 intVal = 0;
+
+        try
+        {
+            intVal = ReadInt32(varLogName);
+            returnValue = (T)Enum.Parse(typeof(T), intVal.ToString());
+        }
+        catch( System.Exception exceptionIn )
+        {
+            returnValue = default( T );
+            ThrowException( exceptionIn.ToString() );
+        }
+
+        return returnValue;
+    }
 
 	public Int32 ReadInt32(string varLogName)
 	{

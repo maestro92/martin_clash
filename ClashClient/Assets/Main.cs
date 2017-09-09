@@ -41,6 +41,7 @@ public class Main : MonoBehaviour
     public int TARGET_FRAME_RATE = 60;
 
     public GameClient mainGameClient;
+    public List<GameClient> gameClients;
 
 	// Use this for initialization
 	void Start () 
@@ -65,6 +66,7 @@ public class Main : MonoBehaviour
             };
 
 
+        gameClients = new List<GameClient>();
 
 	    // connect to server
         // create a clientSessions
@@ -79,6 +81,8 @@ public class Main : MonoBehaviour
 
         // we start with the battle screen
         ui.Reset();
+      
+     //   ui.networkStatusScreen.Activate();
         ui.battleScreen.Activate();
         ui.mainMenu.Activate();
 
@@ -93,8 +97,8 @@ public class Main : MonoBehaviour
     // your main program can certainly have more than one client, right? :)
     void InitMainGameClient()
     {
-        mainGameClient = new GameClient();
-        mainGameClient.StartNetworkSession(networkManager.GetServerIPAddress());
+        mainGameClient = CreateNewGameClient();
+        mainGameClient.StartNetworkSession(networkManager.GetServerIPAddress(), null);
 
     }
 
@@ -110,7 +114,7 @@ public class Main : MonoBehaviour
 	//		CityViewController 
 
     void Update() {
-
+        ui.Update();
     }
 
 	
@@ -123,12 +127,19 @@ public class Main : MonoBehaviour
         // listen for socket?
 
 
-
+        /*
         // send out your own messages
         if (mainGameClient != null)
         {
             mainGameClient.Pump();
         }
+        */
+
+        foreach (var gc in gameClients)
+        {
+            gc.Pump();
+        }
+
         /* 
         if not disconnected
         {
@@ -168,5 +179,29 @@ public class Main : MonoBehaviour
 
     //    bvc.clientSim = mainGameClient.
     }   
+
+
+    public GameClient CreateNewGameClient()
+    {
+        GameClient newClient = new GameClient();
+
+        gameClients.Add(newClient);
+
+        return newClient;
+
+    }
+
+    public void SearchMatchVsAI()
+    {
+        /*
+        // start up an AI
+        GameClient aiClient = CreateNewGameClient();
+        aiClient.StartNetworkSession(Main.instance.networkManager.GetServerIPAddress(), ()=> {
+            aiClient.SearchMatch();
+        });
+        */
+
+        mainGameClient.SearchMatch();
+    }
 
 }

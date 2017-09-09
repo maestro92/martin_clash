@@ -3,7 +3,7 @@
 
 
 
-public class Message
+public class Message : INetSerializer
 {
 
 	public static string MSG_TYPE_DIVIDER = "<MSG>";
@@ -12,6 +12,9 @@ public class Message
     public enum Type
     {
         None,
+        Filler1,
+        Filler2,
+        Filler3,
         ClientConnectRequest,   // client to server
         ServerConnectResponse,  // server to client
         Login,
@@ -21,15 +24,13 @@ public class Message
     };
 
     public Type type;
-    public string data; // using string 
 
 	public BattleStartingInfo bs;
-	public int mapId;	// just testing writeIn using this
+//	public int mapId;	// just testing writeIn using this
 
     private Message()
     {
         type = Type.None;
-        data = "";
     }
 
 	public static Message GetOne()
@@ -58,18 +59,18 @@ public class Message
 		string strData = str.Substring(index+MSG_TYPE_DIVIDER.Length, str.Length - strType.Length + MSG_TYPE_DIVIDER.Length);
 
 		message.type = (Message.Type)(numType);
-		message.data = strData;
+	//	message.data = strData;
 		return message;
 	}
 
-	public static Message SearchMessage()
+	public static Message SearchMatch()
 	{
 		Message message = Message.GetOne(Type.SearchMatch);
 		return message;
 	}
 
 
-	public static Message BattleStartingInfo(BattleStartingInfo bs)
+	public static Message BattleStartingInfoMessage(BattleStartingInfo bs)
 	{
 		Message message = Message.GetOne(Type.BattleStartingInfo);
 		message.bs = bs;
@@ -80,64 +81,124 @@ public class Message
     public static Message Login()
     {
         Message message = Message.GetOne(Type.Login);
-        message.data = "Login";
+      //  message.data = "Login";
         return message;
     }
 
     public static Message LoginResponse()
     {
         Message message = Message.GetOne(Type.LoginResponse);
-        message.data = "LoginResponse";
+     //   message.data = "LoginResponse";
         return message;
     }
 
     public static Message ClientConnectRequest()
     {
         Message message = Message.GetOne(Type.ClientConnectRequest);
-        message.data = "Client Connect Request";
+    //    message.data = "Client Connect Request";
         return message;
     }
 
     public static Message ServerConnectResponse()
     {
         Message message = Message.GetOne(Type.ServerConnectResponse);
-        message.data = "Server Connect Response";
+    //    message.data = "Server Connect Response";
         return message;
     }
 
 	public void Serialize(NetSerializer writer)
 	{
+        writer.WriteEnumAsInt<Message.Type>(type, "message.type");
+
 		switch (type)
 		{
-			case Message.Type.SearchMatch:
+            case Message.Type.ClientConnectRequest:
+                Util.Log("serialize ClientConnectRequest");
+                break;
 
-			break;
+            case Message.Type.Login:
+                Util.Log("Login");
+                break;
+
+            case Message.Type.LoginResponse:
+                Util.Log("serialize LoginResponse ");
+                break;
+
+
+			case Message.Type.SearchMatch:
+                Util.Log("serialize SearchMatch");
+			    break;
+
+			case Message.Type.ServerConnectResponse:
+				Util.Log("serialize ServerConnectResponse");
+				break;
 
 			case Message.Type.BattleStartingInfo:
-				//	writer.WriteOne<BattleStartingInfo>("battleStartingInfo", bs);
-
-				writer.WriteInt32("mapId", mapId);
+                Util.Log("message serialize bs");
+				writer.WriteOne<BattleStartingInfo>(bs, "battleStartingInfo");
 				break;
-				
 
-
-
+            default:                            
+                throw new Exception("Unsupported message type \"" + type.ToString() + "\"!!!");
+                break;
 		}
 	}
 
-	public void Deserializer(NetSerializer reader)
+	public void Deserialize(NetSerializer reader)
 	{
-		switch (type)
+
+        type = reader.ReadEnumAsInt<Message.Type>("message.type");
+        Util.LogError("\t\tDeserializing Msg " + type.ToString());
+        switch (type)
 		{
+			case Message.Type.ClientConnectRequest:
+				Util.Log("msg deserialize ClientConnectRequestion");
+				break;
+
+            case Message.Type.Login:
+                Util.Log("deserialize Login ");
+                break;
+
+            case Message.Type.LoginResponse:
+                Util.Log("deserialize LoginResponse ");
+                break;
+
+
 			case Message.Type.SearchMatch:
 
 				break;
 				
-			case Message.Type.BattleStartingInfo:
-				mapId = reader.ReadInt32("mapId");
+			case Message.Type.ServerConnectResponse:
+				Util.Log("deserialize ServerConnectResponse");
 				break;
+				
+            case Message.Type.BattleStartingInfo:
+                Util.Log("message deserialize, deserailize");
+                Util.LogError("message BattleStartingInfo, deserailize");
+
+                bs = reader.ReadOne<BattleStartingInfo>(() => BattleStartingInfo.GetOne(), "battleStartingInfo");
+
+
+                Util.LogError("#### BattleStartingInfo MaiMeng");
+
+                bs.Print();
+                break;
+
+            default:
+                throw new Exception("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
+                break;
 		}
+
+
+		Print();
 	}
+
+	public void Print()
+	{
+		Util.Log("\t\t>>type " + type.ToString());
+    //    Util.Log("mapId " + mapId.ToString());
+
+    }
 
 	/*
 	public string Serialize()

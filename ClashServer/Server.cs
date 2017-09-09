@@ -174,6 +174,8 @@ public class Server
 
 	private void spawnHandleClientThread(Socket handlerSocket)
 	{
+		Util.Log("Spawning New Client Thread");
+
 		int newId = 0;
 		lock (m_connectionLock)
 		{
@@ -213,6 +215,7 @@ public class Server
 		// 
 		// tick simulation
 
+
 		lock (m_connectionLock)
 		{
 			foreach (var kvp in connections)
@@ -221,6 +224,9 @@ public class Server
 				connection.Pump();
 			}
 		}
+
+		m_matchMaker.Tick();
+
 	}
 
 
@@ -272,7 +278,7 @@ public class Server
 		switch (message.type)
 		{
 			case Message.Type.ClientConnectRequest:
-				Util.LogError("ClientConnectRequest");
+				Util.Log("\tHandling ClientConnectRequest");
 
 				// send back client the ConnectResponse
 
@@ -281,17 +287,17 @@ public class Server
 				break;
 
 			case Message.Type.ServerConnectResponse:
-				Util.LogError("ServerClientResponse");
+				Util.Log("\tHandling ServerClientResponse");
 				break;
 
 			case Message.Type.Login:
-				Util.LogError("Login");
+				Util.Log("\tHandling Login");
 				Message loginResponse = Message.LoginResponse();
 				connection.SendMessage(loginResponse);
 				break;
 
 			case Message.Type.SearchMatch:
-				Util.LogError("SearchMatch");
+				Util.Log("\tHandling " + currentClient.id.ToString() + " SearchMatch Request");
 				// put player in queue
 				m_matchMaker.AddPlayerToQueue(currentClient);
 				break;

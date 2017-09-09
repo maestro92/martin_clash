@@ -4,7 +4,7 @@
 // let's just do dynamic byte arrays
 public class NetBuffer
 {
-	public static int DEFAULT_BUFFER_SIZE = 1024;	// in bytes;
+	public static int DEFAULT_BUFFER_SIZE = 256;	// in bytes;
 
 	private byte[] m_internalBuffer;
 
@@ -40,7 +40,9 @@ public class NetBuffer
 
 	public void InitForWrite()
 	{
-		m_internalBuffer = new byte[DEFAULT_BUFFER_SIZE];
+        m_numBytesAllocated = DEFAULT_BUFFER_SIZE;
+
+        m_internalBuffer = new byte[m_numBytesAllocated];
 		m_tempReadByteArray = new byte[8];
 	}
 
@@ -57,8 +59,8 @@ public class NetBuffer
 	// when we write stuff, we want to write it in NetworkEndian order
 	public bool WriteInt32AtIndex(int indexIn, int valueIn)
 	{
-		int oldPosition = m_curPosition;
-		SeekBegin(indexIn);
+    	int oldPosition = m_curPosition;		
+        SeekBegin(indexIn);
 		bool b = WriteInt32(valueIn);
 		SeekBegin(oldPosition);
 		return b;
@@ -86,9 +88,13 @@ public class NetBuffer
 	// when we write stuff, we want to write it in NetworkEndian order
 	public bool WriteInt32(int valueIn)
 	{
-		byte[] byteArray = BitConverter.GetBytes(valueIn);
+   //     Util.LogError("WriteInt32 " + valueIn);
+        byte[] byteArray = BitConverter.GetBytes(valueIn);
 
 		NetUtil.NativeToNetworkEndian(byteArray, 0, byteArray.Length);
+
+
+
 
 		// convert from Native Endian to Network Endian
 		return WriteData(byteArray, 0, byteArray.Length);
@@ -110,14 +116,17 @@ public class NetBuffer
 	{
 		if (m_curPosition + numBytesToWrite > m_numBytesAllocated )
 		{
-			return false;
+     		return false;
 		}
 
 		if (numBytesToWrite > 0)
 		{
 			System.Buffer.BlockCopy(srcByteArrayIn, positionToReadFrom, m_internalBuffer, m_curPosition, numBytesToWrite);
-			m_curPosition += numBytesToWrite;
-		}
+
+            m_curPosition += numBytesToWrite;
+		
+            m_numBytes = Math.Max(m_curPosition, m_numBytes);        
+        }
 
 		return true;
 	}

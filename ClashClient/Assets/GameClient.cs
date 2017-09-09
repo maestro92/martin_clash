@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class GameClient
 {
+  //  public Action OnLogin
 
     public GameClient()
     {
@@ -16,7 +17,7 @@ public class GameClient
 
     private ClientSimulation clientSim;
 
-    public void StartNetworkSession(string hostIPAddress)
+    public void StartNetworkSession(string hostIPAddress, Action OnLogin)
     {
         connection = new NetGameConnection();
         connection.InitClientSideSocket();
@@ -27,6 +28,13 @@ public class GameClient
         connection.ConnectToHost(hostIPAddress, NetworkManager.SERVER_PORT);
 
         Util.Log("StartNetworkSession");
+
+        if (OnLogin != null)
+        {
+            OnLogin();
+        }
+
+
     }
 
     // There are multiple ways to organize it
@@ -56,15 +64,20 @@ public class GameClient
         switch (message.type)
         {
             case Message.Type.ServerConnectResponse:
-                Util.LogError("ServerClientResponse");
+                Util.LogError("Handling ServerClientResponse");
                 Message loginRequest = Message.Login();
                 connection.SendMessage(loginRequest);
                 break;
 
             case Message.Type.LoginResponse:
-                Util.LogError("LoginResponse");
+                Util.LogError("Handling LoginResponse");
                 break;
                          
+            case Message.Type.BattleStartingInfo:
+                Util.Log("Handling BattleStartingInfo Message");
+                Main.instance.GoToBattle();
+                break;
+
             default:
                 break;
         }
@@ -85,15 +98,10 @@ public class GameClient
 
     public void SearchMatch()
     {
-        Debug.LogError("SearchMatch()");
-        Message message = Message.SearchMessage();
+        Message message = Message.SearchMatch();
         connection.SendMessage(message);
-
-
-        // start up an AI
-        GameClient aiClient = new GameClient();
-        aiClient.StartNetworkSession(Main.instance.networkManager.GetServerIPAddress());
     }
+
 
     public void StartBattle(BattleStartingInfo bs)
     {

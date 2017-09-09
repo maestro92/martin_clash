@@ -6,11 +6,14 @@ using UnityEngine;
 
 public class UIManager
 {
-    public LoadingPageController loadingScreen;
+    public NetworkStatusScreenController networkStatusScreen;
     public MainMenuController mainMenu;
     public BattleScreenController battleScreen;
     public CardScreenController cardScreen;   
     public BattleHudController battleHud;
+
+
+
 
     public UIManager()
     {
@@ -20,6 +23,9 @@ public class UIManager
     public void Init()
     {
         Vector2 prefabPosition = Vector2.zero;
+
+        networkStatusScreen = InitController<NetworkStatusScreenController>("NetworkStatusScreen");
+        networkStatusScreen.Init();
 
         battleScreen = InitController<BattleScreenController>("BattleScreen");
         battleScreen.Init();
@@ -44,9 +50,15 @@ public class UIManager
         return gameObject.GetComponent<T>();
     }
 
+    public void Update()
+    {
+        networkStatusScreen.Update();
+    }
+
 
     public void Reset()
     {
+        networkStatusScreen.gameObject.SetActive(false);
         mainMenu.gameObject.SetActive(false);
         battleScreen.gameObject.SetActive(false);
         cardScreen.gameObject.SetActive(false);

@@ -16,9 +16,7 @@ public class BattleScreenController : MonoBehaviour
     // sends a message to the server
     public void SearchForBattle()
     {
-        Main.instance.mainGameClient.SearchMatch();
-
-        Main.instance.GoToBattle();
+        Main.instance.SearchMatchVsAI();
     }
 
     public void Activate()

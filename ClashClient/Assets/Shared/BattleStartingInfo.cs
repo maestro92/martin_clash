@@ -6,25 +6,65 @@ using System.Collections.Generic;
 // I plan to support 2v2s
 
 
-public class PlayerInfo
+public class PlayerInfo : INetSerializer
 {
 	public int userId;
 
+
+	static public PlayerInfo GetOne()
+	{
+		PlayerInfo pi = new PlayerInfo();
+		return pi;
+	}
+
+	public void Serialize(NetSerializer writer)
+	{
+		writer.WriteInt32("userId", userId);
+
+	}
+
+	public void Deserialize(NetSerializer reader)
+	{
+		userId = reader.ReadInt32("userId");
+	}
+
+    public void Print()
+    {
+        Util.LogError("userId " + userId.ToString());
+    }
 }
 
-public class BattleStartingInfo
+public class BattleStartingInfo : INetSerializer
 {
 	// playerIds
-	public List<PlayerInfo> team0;
-	public List<PlayerInfo> team1;
+	// public List<PlayerInfo> team0;
+	// public List<PlayerInfo> team1;
 
-    public BattleStartingInfo()
+	public PlayerInfo playerInfo0;
+	public PlayerInfo playerInfo1;
+
+	public int mapId;
+
+    public int filler;
+
+    private BattleStartingInfo()
     {
-		
-    }
+		//	team0 = new List<PlayerInfo>();
+		//	team1 = new List<PlayerInfo>();
+		playerInfo0 = new PlayerInfo();
+		playerInfo1 = new PlayerInfo();	
+	}
+
+
+	static public BattleStartingInfo GetOne()
+	{
+		BattleStartingInfo bs = new BattleStartingInfo();
+		return bs;
+	}
 
 	public void AddPlayer(Enums.Team teamId, PlayerInfo playerInfo)
 	{
+	/*
 		if (teamId == Enums.Team.Team0)
 		{
 			team0.Add(playerInfo);
@@ -37,6 +77,46 @@ public class BattleStartingInfo
 		{
 			Util.LogError("Invalid teamId, not adding to any team");
 		}
+		*/
+
+		if (teamId == Enums.Team.Team0)
+		{
+			playerInfo0 = playerInfo;
+		}
+		else if (teamId == Enums.Team.Team1)
+		{
+			playerInfo1 = playerInfo;
+		}
+		else
+		{
+			Util.LogError("Invalid teamId, not adding to any team");
+		}
 	}
+
+    public void Serialize(NetSerializer writer)
+    {
+		//		writer.
+	//	writer.WriteOne<PlayerInfo>(playerInfo0, "playerInfo0");
+        writer.WriteInt32("filler", filler);
+        writer.WriteOne<PlayerInfo>(playerInfo1, "playerInfo1");
+		writer.WriteInt32("mapId", mapId);
+
+    }
+
+    public void Deserialize(NetSerializer reader)
+    {
+        Util.Log("Deserializing bs");
+ //       playerInfo0 = reader.ReadOne<PlayerInfo>(()=>PlayerInfo.GetOne(), "playerInfo0");
+        filler = reader.ReadInt32("filler");
+        playerInfo1 = reader.ReadOne<PlayerInfo>(()=>PlayerInfo.GetOne(), "playerInfo1");
+		mapId = reader.ReadInt32("mapId");
+    }
+
+    public void Print()
+    {
+        Util.LogError("filler " + filler.ToString());
+        playerInfo1.Print();
+        Util.LogError("mapId " + mapId.ToString());
+    }
 }
 

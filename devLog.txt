@@ -324,10 +324,71 @@ As an exercise, I shall attempt to code my own.
 
 
 
+##################################################################################
+##################################### 2017/09/03 #################################
+##################################################################################
+
+As I am close to getting the serliazer to work, I have encoutered this bug where 
+
+	"Error: Garbage collector could not allocate 16384 bytes of memory for major heap section."
+
+I pretty much have the following structure, in my code
+
+
+
+					NetGameConnection
+					{	
+						SocketSend()
+						SocketReceive()
+					}
+
+
+					public void SocketReceive()
+					{
+
+						if( this.ReceiveInFlightFlag == true )
+						{
+							...
+							...
+						}
+						else if( !IsConnected() )
+						{
+							...
+							...
+						}
+						else if( m_rawTcpSocket == null )
+						{
+							...
+							...
+				        }
+				        else
+				        {
+				        	// this sets the beginReceive Flag
+							SetReceiveInFlightFlag( true, uniqueString + ": Receive or BeginReceive" );
+		        			m_rawTcpSocket.BeginReceive( m_readBuffer, 0, m_readBuffer.Length, 0, new AsyncCallback( PrivateAsyncReceiveCallback ), null );						
+				        }
+					}
+
+
+    				private void ReceiveCallback(IAsyncResult ar)
+					{
+						int numBytesReceived = m_rawTcpSocket.EndReceive(ar);
+
+
+
+						SetReceiveInFlightFlag( false, uniqueString + ": EndReceive done" );
+					}
 
 
 
 
+and this was causing a problem, mainly cuz, every frame, BeginReceive was making a thread, causing this memory issue on the heap
 
 
+When I was studying Milota's code, I come to realize that he actually has a boolean flag to indicate whether the program is in
+receive mode. The flag is set to true when BeginReceive starts, then turned off when EndReceive gets called. This way, there really is only ever one BeginReceive thread every called. 
+
+
+As a matter of fact, the NetGameConnection class also has a flag for when sending messages. It does the same job, which is to prevent multiple BeginSend
+or BeginReceive threads being generated.
 
