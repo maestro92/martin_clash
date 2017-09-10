@@ -3,10 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+the idea is to set states in other functions
+and in these PumpFunctions, do the actual work
+*/ 
 
 public class GameClient
 {
-  //  public Action OnLogin
+    public Action OnLogin;
 
     public GameClient()
     {
@@ -17,7 +21,7 @@ public class GameClient
 
     private ClientSimulation clientSim;
 
-    public void StartNetworkSession(string hostIPAddress, Action OnLogin)
+    public void StartNetworkSession(string hostIPAddress, Action OnLoginIn)
     {
         connection = new NetGameConnection();
         connection.InitClientSideSocket();
@@ -25,14 +29,19 @@ public class GameClient
 
         Util.Log("Esablishing Connection to " + hostIPAddress);
 
-        connection.ConnectToHost(hostIPAddress, NetworkManager.SERVER_PORT);
+//        connection.ConnectToHost(hostIPAddress, NetworkManager.SERVER_PORT);
+        connection.SetConnectToHostInfo(hostIPAddress, NetworkManager.SERVER_PORT);
+
+
 
         Util.Log("StartNetworkSession");
-
+        this.OnLogin = OnLoginIn;
+        /*
         if (OnLogin != null)
         {
             OnLogin();
         }
+        */
 
 
     }
@@ -71,6 +80,12 @@ public class GameClient
 
             case Message.Type.LoginResponse:
                 Util.LogError("Handling LoginResponse");
+
+                if (OnLogin != null)
+                {
+                    OnLogin();
+                }
+
                 break;
                          
             case Message.Type.BattleStartingInfo:

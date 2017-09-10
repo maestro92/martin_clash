@@ -196,9 +196,11 @@ public class Server
 
 		client.SetGameConnection(connection);
 
+
 		connection.OnHandleMessage = OnHandleMessage;
 		connection.SetConnectionName(connectionName);
 		connection.InitServerSideSocket(handlerSocket);
+		connection.OnServerSocketConnected();
 
 		Util.Log("Handle Client Connection:  Client@:" + remoteAddressAndPortString + ", connectionName=" + connection.GetConnectionName());
 

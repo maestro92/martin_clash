@@ -6,7 +6,8 @@ using UnityEngine;
 public class NetworkStatusScreenController : MonoBehaviour
 {
     
-
+    public GameObject spinningCircle;
+    public float angle;
     public NetworkStatusScreenController()
     {
         
@@ -15,20 +16,52 @@ public class NetworkStatusScreenController : MonoBehaviour
 
     public void Init()
     {
-
+        angle = 0;
     }
 
     public void Update()
     {
+
+
+
+        bool shouldBeOn = false;
+
         if (Main.instance.mainGameClient != null)
         {
-            if (Main.instance.mainGameClient.connection.GetConnectionState() == NetGameConnectionState.CONNECTED)
+            NetGameConnectionState state = Main.instance.mainGameClient.connection.GetConnectionState();
+            switch (state)
             {
-                Main.instance.ui.battleScreen.Activate();
-                Main.instance.ui.mainMenu.Activate();
+                case NetGameConnectionState.ClientContactingServer:
+                case NetGameConnectionState.Disconnected:
+                case NetGameConnectionState.None:
+                    shouldBeOn = true;
+                    break;
+            }                    
+        }
+
+
+        if (shouldBeOn == true)
+        {
+            if (Main.instance.ui.networkStatusScreen.isActiveAndEnabled == false)
+            {
+                Main.instance.ui.networkStatusScreen.Activate();
+            }
+//            Main.instance.ui.battleScreen.Activate();
+//            Main.instance.ui.mainMenu.Activate();
+        }
+        else
+        {
+            if (Main.instance.ui.networkStatusScreen.isActiveAndEnabled == true)
+            {
+                Main.instance.ui.networkStatusScreen.gameObject.SetActive(false);
             }
         }
 
+
+
+
+
+        spinningCircle.transform.Rotate(new Vector3(0, 0, 1));
 
         /*
 

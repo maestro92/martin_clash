@@ -172,7 +172,6 @@ public class NetSerializer
 		m_writeContextList.RemoveAt(m_writeContextList.Count - 1);
 
 		int blockSize = m_writeBuffer.GetPosition() - writeContext.writerDataPos;
-		Util.Log("WriteObject BlockSize is " + blockSize.ToString());
 		m_writeBuffer.WriteInt32AtIndex(writeContext.writerHeaderPos, blockSize);
 	
 	}
@@ -184,28 +183,20 @@ public class NetSerializer
 		BeginReadObject(logVarNameIn);
 
 		T itemIn = objectFactory();
-        Util.LogError("before itemIn Deserialize ");
         itemIn.Deserialize(this);
-        Util.LogError("after itemIn Deserialize ");
 
 		EndReadObject();
-        Util.LogError("Finished EndReadObject ");
-        Util.Log("Finished EndReadObject ");
-
 		return itemIn;
 	}
 
 
 	public void BeginReadObject(string objectNameIn)
-	{
-        Util.Log("BeginReadObject ");
-
+	{     
         if (m_mode != NetSerializationMode.Reader)
 		{
 			ThrowException("NetSerializer.BeginReadObject(): Not in reader mode!!!!");
 		}
 		int blockSize = m_readBuffer.ReadInt32();
-		Util.Log("ReadObject BlockSize is " + blockSize.ToString());
 		int headerPos = m_readBuffer.GetPosition();
 		int endPos = headerPos + blockSize;
 
@@ -215,9 +206,6 @@ public class NetSerializer
 
 	public void EndReadObject()
 	{
-        Util.LogError("EndReadObject ");
-        Util.LogError("m_readContextList.Count " + m_readContextList.Count.ToString());
-
 		var readContext = m_readContextList[m_readContextList.Count - 1];
 		m_readContextList.RemoveAt(m_readContextList.Count - 1);
 	}

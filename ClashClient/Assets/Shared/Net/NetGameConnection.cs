@@ -10,9 +10,18 @@ public enum NetGameConnectionState
 {
     None,
 
-    DISCONNECTED,
-    CONNECTED,
+    Disconnected,
+    Connected,
+    ClientContactingServer,
+    ClientWaitingForServerValidation,
+    ClientConnectError,
 };
+// we need a multiple bool "socketConnected" since there are multiple states assumes "socketConnected"
+// For Example: 
+//      ServerWaitingValidation
+//      ClientWaitingForServerValidation
+//      
+// so we'll use an extra bool to do it
 
 
 
@@ -29,6 +38,10 @@ public class NetGameConnection
 
 	public bool sendInFlightFlag = false;
 	public bool receiveInFlightFlag = false;
+    public bool clientConnectToServerInFlightFlag = false;
+    public double clientConnectToServerStartTime;
+    public bool socketConnected = false;
+
 
 //	private string m_curStringPayload;
 	public byte[] sendDataBuffer;
@@ -46,12 +59,20 @@ public class NetGameConnection
 	private int m_curMsgDataSize;
 	private byte[] m_curMsgDataReadBuffer;  // or also the payload
 
+    public string serverIpAddress;
+    public int serverPort;
+
 	private string m_connectionName;
+
+    public double ClientConnectTimeOut_ms;
 
 	public Action<NetGameConnection, Message> OnHandleMessage;
 	public NetGameConnection()
     {
 		//        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
+        sendInFlightFlag = false;
+        receiveInFlightFlag = false;
+        clientConnectToServerInFlightFlag = false;
 
 		m_sendListLock = new Object();
 		m_receiveMessageListLock = new Object();
@@ -70,10 +91,12 @@ public class NetGameConnection
 		m_curMsgDataIndex = 0;
 		m_curMsgDataSize = 0;
 		m_curMsgDataReadBuffer = null;
+
+        ClientConnectTimeOut_ms = 5000;
 	}
 
     private Socket                  m_rawTcpSocket = null;
-    private NetGameConnectionState m_connectionState = NetGameConnectionState.DISCONNECTED;
+    private NetGameConnectionState m_connectionState = NetGameConnectionState.None;
 
 
     public void SetConnectionState(NetGameConnectionState state)
@@ -134,7 +157,15 @@ public class NetGameConnection
         m_rawTcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
     }
 
+    public void SetConnectToHostInfo(string ipAddress, int port)
+    {
 
+        this.serverIpAddress = ipAddress;
+        this.serverPort = port;
+        this.SetConnectionState(NetGameConnectionState.ClientContactingServer);
+    }
+
+    /*
     public void ConnectToHost(string ipAddress, int port)
     {   
         // this is a blocking call
@@ -142,7 +173,7 @@ public class NetGameConnection
         bool connected = false; 
         try
         {
-            
+            SetConnectionState(NetGameConnectionState.ClientContactingServer);
             m_rawTcpSocket.Connect(ipAddress, port);
             connected = true;
 
@@ -161,25 +192,16 @@ public class NetGameConnection
             SendMessage(message);
         }
     }
+*/
 
 
-    private void OnClientSocketConnected()
-    {
-        // myself
-        IPEndPoint localIpEndPoint = (IPEndPoint)(m_rawTcpSocket.LocalEndPoint);
-        string localAddressAndPortString = localIpEndPoint.Address.ToString() + ":" + localIpEndPoint.Port.ToString();
 
-        // the server, or whoever I am connected to
-        IPEndPoint remoteIpEndPoint = (IPEndPoint)(m_rawTcpSocket.RemoteEndPoint);
-        string remoteAddressAndPortString = remoteIpEndPoint.Address.ToString() + ":" + remoteIpEndPoint.Port.ToString();
-        string connectionName = remoteAddressAndPortString;
 
-        string tmpStr = "ClientConnectCallback(client@" + localAddressAndPortString + " " + this.m_connectionName + " to server@" + remoteAddressAndPortString + ")";
-        Util.Log(tmpStr);
-    }
+
 
 	public void Shutdown()
 	{
+        SetConnectionState(NetGameConnectionState.Disconnected);
 		if (m_rawTcpSocket != null)
 		{
 			m_rawTcpSocket.Shutdown(SocketShutdown.Both);
@@ -201,15 +223,24 @@ public class NetGameConnection
 
 
 	// this is called only in one thread
-    public void SocketSend()
+    public void PumpSocketSend()
     {
-		if (sendInFlightFlag == true)
-		{
-		//	Util.Log("balling cuz sendInFlightFLag is true ");
-		}
+   //     Util.LogError("PumpSocketSend " + m_connectionState.ToString());
+
+        if (sendInFlightFlag == true)
+        {
+            //	Util.Log("balling cuz sendInFlightFLag is true ");
+        }
+        else if (m_connectionState != NetGameConnectionState.Connected)
+        {
+         //   Util.LogError("PumpSocketSend Error, not Connected ");
+        }
+        else if (m_rawTcpSocket == null)
+        {
+            Util.LogError("m_rawTcpSocket == null ");
+        }
 		else
 		{
-
 			// Begin sending the data to the remote device.  
 			List<Message> tempSendList = null;
 			lock (m_sendListLock)
@@ -222,10 +253,10 @@ public class NetGameConnection
 
 				m_sendMessageList.Clear();
 			}
-
+                
 			if (tempSendList.Count > 0)
 			{
-			//	Util.Log("\t>>> Sending shit in SocketSend");
+				Util.Log("\t>>> Sending shit in SocketSend");
 
 				MemsetZeroBuffer(sendDataBuffer, sendDataBuffer.Length);
 
@@ -282,7 +313,8 @@ public class NetGameConnection
 				*/
 				SetSendInFlightFlag(true, "BeingSend");
 				m_rawTcpSocket.BeginSend(sendDataBuffer, 0, numBytes, 0, new AsyncCallback(SendCallback), null);
-			}
+                Util.LogError("BeginSend");
+            }
 		}
     }
 
@@ -315,6 +347,18 @@ public class NetGameConnection
 		}
 	}
 
+    public void SetClientConnectToserverInFlightFlag(bool flag)
+    {
+        if (clientConnectToServerInFlightFlag == flag)
+        {
+
+        }
+        else
+        {
+            clientConnectToServerInFlightFlag = flag;
+        }
+    }
+
 
     private void SendCallback(IAsyncResult ar)
     {
@@ -343,8 +387,9 @@ public class NetGameConnection
 	}
 
 
-	public void SocketReceive()
+	public void PumpSocketReceive()
 	{
+    //    Util.LogError("PumpSocketReceive " + m_connectionState.ToString());
 		//		MemsetZeroBuffer(receiveDataBuffer, receiveDataBufferSize);
 
 		// apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
@@ -353,9 +398,16 @@ public class NetGameConnection
 		{
 		//	Util.Log("balling cuz receiveInFlightFlag is true ");
 		}
+        else if (m_connectionState != NetGameConnectionState.Connected)
+        {
+        //    Util.LogError("PumpSocketReceive Error, not Connected ");
+        }
+        else if (m_rawTcpSocket == null)
+        {
+
+        }
 		else
 		{
-		//	Util.LogError("Socket Receive");
 			SetReceiveInFlightFlag(true, "BeginReceive in SocketReceive");
 
 			m_rawTcpSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
@@ -414,16 +466,10 @@ public class NetGameConnection
 
 							m_curMsgDataSize = BitConverter.ToInt32(m_curMsgSizeInfoReadBuffer, 0);// data size
 							m_curMsgDataReadBuffer = new byte[m_curMsgDataSize];
-
-                            Util.LogError("m_curMsgDataIndex " + m_curMsgDataIndex.ToString());
-                            Util.LogError("m_curMsgDataSize " + m_curMsgDataSize.ToString());
-						}
+                    	}
 					}
 					else if (m_curMsgDataIndex < m_curMsgDataSize)
 					{
-
-                        Util.LogError("iterating through here " + m_curMsgDataIndex.ToString());
-
 						m_curMsgDataReadBuffer[m_curMsgDataIndex] = receiveDataBuffer[i];
 						m_curMsgDataIndex++;
 
@@ -437,8 +483,6 @@ public class NetGameConnection
 
 							message.Deserialize(reader);
 							// then add it to the receiveMsgList
-
-
 
 							lock (m_receiveMessageListLock)
 							{
@@ -559,11 +603,179 @@ public class NetGameConnection
 	}
 
 
+
+    public void PumpClientConnect()
+    {
+        if( m_connectionState == NetGameConnectionState.ClientContactingServer )
+        {
+            double now = Util.GetRealTimeMS();
+
+            if (clientConnectToServerInFlightFlag == false && (now - clientConnectToServerStartTime >= ClientConnectTimeOut_ms) )
+            {
+                clientConnectToServerInFlightFlag = true;
+                PrivateAsyncClientConnect();
+                clientConnectToServerStartTime = now;
+            }
+        }
+    }
+
+
+    private void PrivateAsyncClientConnect()
+    {
+        // blocking async version
+
+        try
+        {
+            m_rawTcpSocket.Disconnect( true );
+        }
+        catch( System.Exception exceptionIn )
+        {
+            Util.LogError("PrivateAsyncClientConnect, m_rawTcpSocket.Disconnect exception");
+        //    Util.UnusedVar<System.Exception>( exceptionIn );
+        }
+        try
+        {
+            m_rawTcpSocket.Close();
+        }
+        catch( System.Exception exceptionIn )
+        {
+            Util.LogError("PrivateAsyncClientConnect, m_rawTcpSocket.Close exception");
+        //    Util.UnusedVar<System.Exception>( exceptionIn );
+        }
+        m_rawTcpSocket = null;
+
+        InitClientSideSocket();
+
+
+        try
+        {
+            Util.LogError("BeginConnect");
+            m_rawTcpSocket.BeginConnect( serverIpAddress, serverPort, new AsyncCallback( PrivateAsyncClientConnectCallback ), m_rawTcpSocket );
+        }
+        catch( System.Exception exceptionIn )
+        {
+            Util.LogError( "PumpClientConnect " + ": Exception=\"" + exceptionIn.ToString() + "\"" );
+            SetConnectionState( NetGameConnectionState.ClientConnectError );
+        }
+    }
+
+
+
+
+    private void PrivateAsyncClientConnectCallback(IAsyncResult ar )
+    {
+        try
+        {
+            // to know if it is a successful connect,
+            // if it fails, it will just go into Connection
+            // otherwise, this will go through and run the OnConnectedCallBack
+
+            if( m_rawTcpSocket == null )
+            {
+                return;
+            }
+
+            m_rawTcpSocket.EndConnect(ar); 
+
+            OnClientSocketConnected();
+        }
+        catch( System.Net.Sockets.SocketException socketExceptionIn )
+        {
+            Util.LogError("socketExceptionIn " );
+            if( socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.ConnectionRefused ) // 10061 )
+            {
+                // no need to log this.  This means there isn't a server running at that IP (or there is one but it's not letting us in)
+                Util.LogError("connection refused? " );
+            }
+
+            // Netw
+            else if( socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.NetworkDown )  // 10050 )
+            {
+                // no need to log this.  This means there isn't a server running at that IP (or there is one but it's not letting us in)
+                Util.LogError("connection NetworkDown? " );
+            }
+            else
+            {
+                string errString = "SOCKET EXCEPTION! ErrorCode = " + socketExceptionIn.ErrorCode.ToString() + ", Exception = \"" + socketExceptionIn.ToString() + "\"";
+                Util.LogError( errString );
+            }
+        }
+        catch( System.Exception exceptionIn )
+        {
+            string errString = "EXCEPTION! Exception = \"" + exceptionIn.ToString() + "\"";
+            Util.LogError( errString );
+        }
+        clientConnectToServerInFlightFlag = false;
+    }
+
+
+    private void OnClientSocketConnected()
+    {
+        Util.LogError("SetConnectionState(NetGameConnectionState.Connected)");;
+
+        SetConnectionState(NetGameConnectionState.Connected);
+        // myself
+        IPEndPoint localIpEndPoint = (IPEndPoint)(m_rawTcpSocket.LocalEndPoint);
+        string localAddressAndPortString = localIpEndPoint.Address.ToString() + ":" + localIpEndPoint.Port.ToString();
+
+        // the server, or whoever I am connected to
+        IPEndPoint remoteIpEndPoint = (IPEndPoint)(m_rawTcpSocket.RemoteEndPoint);
+        string remoteAddressAndPortString = remoteIpEndPoint.Address.ToString() + ":" + remoteIpEndPoint.Port.ToString();
+        string connectionName = remoteAddressAndPortString;
+
+        string tmpStr = "ClientConnectCallback(client@" + localAddressAndPortString + " " + this.m_connectionName + " to server@" + remoteAddressAndPortString + ")";
+        Util.Log(tmpStr);
+
+        // if socket connection succeeds, start sending a connection request
+
+        Message message = Message.ClientConnectRequest();
+        SendMessage(message);
+    }
+
+
+
+
+    public void OnServerSocketConnected()
+	{
+		SetConnectionState(NetGameConnectionState.Connected);
+
+	}
+	/*
+		public void AsyncClientConnectToHost(string ipAddress, int port)
+		{
+			// this is a blocking call
+
+			bool connected = false; 
+			try
+			{
+				SetConnectionState(NetGameConnectionState.ClientContactingServer);
+				m_rawTcpSocket.Connect(ipAddress, port);
+				connected = true;
+
+				OnClientSocketConnected();
+			}
+			catch( System.Net.Sockets.SocketException socketExceptionIn )
+			{
+				Util.LogError("Socket Exception, can't connect");
+			}
+
+			if (connected)
+			{
+				// if socket connection succeeds, start sending a connection request
+
+				Message message = Message.ClientConnectRequest();
+				SendMessage(message);
+			}
+
+		}
+			*/
+
 	// pump means tick
 	public void Pump()
     {
-		SocketSend();
-		SocketReceive();
+        PumpClientConnect();
+		PumpSocketSend();
+		PumpSocketReceive();
 		ProcessIncomingMessages();
 
         // listen for stuff

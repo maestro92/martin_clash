@@ -95,19 +95,14 @@ public class BattleStartingInfo : INetSerializer
 
     public void Serialize(NetSerializer writer)
     {
-		//		writer.
-	//	writer.WriteOne<PlayerInfo>(playerInfo0, "playerInfo0");
-        writer.WriteInt32("filler", filler);
+		writer.WriteOne<PlayerInfo>(playerInfo0, "playerInfo0");
         writer.WriteOne<PlayerInfo>(playerInfo1, "playerInfo1");
 		writer.WriteInt32("mapId", mapId);
-
     }
 
     public void Deserialize(NetSerializer reader)
     {
-        Util.Log("Deserializing bs");
- //       playerInfo0 = reader.ReadOne<PlayerInfo>(()=>PlayerInfo.GetOne(), "playerInfo0");
-        filler = reader.ReadInt32("filler");
+        playerInfo0 = reader.ReadOne<PlayerInfo>(()=>PlayerInfo.GetOne(), "playerInfo0");
         playerInfo1 = reader.ReadOne<PlayerInfo>(()=>PlayerInfo.GetOne(), "playerInfo1");
 		mapId = reader.ReadInt32("mapId");
     }

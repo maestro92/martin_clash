@@ -83,8 +83,7 @@ public class Main : MonoBehaviour
         ui.Reset();
       
      //   ui.networkStatusScreen.Activate();
-        ui.battleScreen.Activate();
-        ui.mainMenu.Activate();
+
 
         InitMainGameClient();
 
@@ -98,11 +97,17 @@ public class Main : MonoBehaviour
     void InitMainGameClient()
     {
         mainGameClient = CreateNewGameClient();
-        mainGameClient.StartNetworkSession(networkManager.GetServerIPAddress(), null);
+        mainGameClient.StartNetworkSession(networkManager.GetServerIPAddress(), OnLoginAsMainGameClient);
 
     }
 
 
+    public void OnLoginAsMainGameClient()
+    {
+        Debug.LogError("OnLoginAsMainGameClient()");
+        ui.battleScreen.Activate();
+        ui.mainMenu.Activate();
+    }
 
 	// Update is called once per frame
 
