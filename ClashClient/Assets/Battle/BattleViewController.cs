@@ -172,6 +172,8 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
 
                 Vector3 worldPoint = worldCamera.ScreenToWorldPoint(eventData.position);
 //                Vector3 localWorldPoint = grass.transform.InverseTransformPoint(worldPoint);
+
+                // transfroms worldPoint from worldspace to localSpace
                 Vector3 localWorldPoint = worldLayer.transform.InverseTransformPoint(worldPoint);
                 localWorldPoint.z = 0;
 
@@ -179,8 +181,9 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
             //    Debug.LogError("eventData.position " + eventData.position);
             //    Debug.LogError("worldPoint " + localWorldPoint);
 
-                clientSim.simulation.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType, clientSim.state.teamId, localWorldPoint);
-                
+           //     clientSim.simulation.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType, clientSim.state.teamId, localWorldPoint);
+                Message castCardMsg = Message.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType);
+                Main.instance.mainGameClient.connection.SendMessage(castCardMsg);
             }
         }
         else

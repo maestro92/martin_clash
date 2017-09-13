@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class PlayerInfo : INetSerializer
 {
 	public int userId;
-
+	public int playerId;
 
 	static public PlayerInfo GetOne()
 	{
@@ -19,19 +19,22 @@ public class PlayerInfo : INetSerializer
 
 	public void Serialize(NetSerializer writer)
 	{
-		writer.WriteInt32("userId", userId);
-
+		writer.WriteInt32(userId, "userId");
+		writer.WriteInt32(playerId, "playerId");
 	}
 
 	public void Deserialize(NetSerializer reader)
 	{
 		userId = reader.ReadInt32("userId");
+		playerId = reader.ReadInt32("playerId");
+
 	}
 
     public void Print()
     {
         Util.LogError("userId " + userId.ToString());
-    }
+		Util.LogError("playerId " + playerId.ToString());
+	}
 }
 
 public class BattleStartingInfo : INetSerializer
@@ -97,7 +100,7 @@ public class BattleStartingInfo : INetSerializer
     {
 		writer.WriteOne<PlayerInfo>(playerInfo0, "playerInfo0");
         writer.WriteOne<PlayerInfo>(playerInfo1, "playerInfo1");
-		writer.WriteInt32("mapId", mapId);
+		writer.WriteInt32(mapId, "mapId");
     }
 
     public void Deserialize(NetSerializer reader)
@@ -109,9 +112,9 @@ public class BattleStartingInfo : INetSerializer
 
     public void Print()
     {
-        Util.LogError("filler " + filler.ToString());
-        playerInfo1.Print();
-        Util.LogError("mapId " + mapId.ToString());
+   //     Util.LogError("filler " + filler.ToString());
+    //    playerInfo1.Print();
+    //    Util.LogError("mapId " + mapId.ToString());
     }
 }
 

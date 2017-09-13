@@ -222,101 +222,7 @@ public class NetGameConnection
 
 
 
-	// this is called only in one thread
-    public void PumpSocketSend()
-    {
-   //     Util.LogError("PumpSocketSend " + m_connectionState.ToString());
 
-        if (sendInFlightFlag == true)
-        {
-            //	Util.Log("balling cuz sendInFlightFLag is true ");
-        }
-        else if (m_connectionState != NetGameConnectionState.Connected)
-        {
-         //   Util.LogError("PumpSocketSend Error, not Connected ");
-        }
-        else if (m_rawTcpSocket == null)
-        {
-            Util.LogError("m_rawTcpSocket == null ");
-        }
-		else
-		{
-			// Begin sending the data to the remote device.  
-			List<Message> tempSendList = null;
-			lock (m_sendListLock)
-			{
-				tempSendList = new List<Message>();
-				foreach (var msg in m_sendMessageList)
-				{
-					tempSendList.Add(msg);
-				}
-
-				m_sendMessageList.Clear();
-			}
-                
-			if (tempSendList.Count > 0)
-			{
-				Util.Log("\t>>> Sending shit in SocketSend");
-
-				MemsetZeroBuffer(sendDataBuffer, sendDataBuffer.Length);
-
-				NetSerializer writer = NetSerializer.GetOne();
-				writer.SetupWriteMode("SocketSend", Globals.SerializeWithDebugMarkers);
-
-
-				/*
-				msg0 5
-
-				msg1 7
-
-				- ----- - -------
-
-				0		6
-
-
-				*/
-
-			//	Util.LogError("tempSendList count " + tempSendList.Count.ToString());
-
-				int oldCount = writer.GetWriteBufferNumBytes();
-				int newCount = writer.GetWriteBufferNumBytes();
-				// string data = "";
-				foreach (var msg in tempSendList)
-				{
-					// size of msg, putting 0 for now as a place holder
-					Int32 msgSizeHeader = 0;
-
-					writer.WriteInt32("msgSizeHeader", msgSizeHeader);
-
-
-					msg.Serialize(writer);
-
-					newCount = writer.GetWriteBufferNumBytes();
-
-					int msgSize = newCount - oldCount - 4;
-					writer.WriteInt32AtIndex("msgSizeHeader", msgSize, oldCount);
-					Util.LogError("Write msgSize " + msgSize.ToString());
-					oldCount = newCount;
-				}
-
-				sendDataBuffer = writer.GetWriteBufferByteArray();
-				int numBytes = writer.GetWriteBufferNumBytes();
-
-				/*
-				int i = 0;
-				while (i < numBytes)
-				{
-					Util.LogError("byte is " + sendDataBuffer[i]);
-					i++;
-				}
-				Util.LogError("Sending " + numBytes.ToString() + " of data");
-				*/
-				SetSendInFlightFlag(true, "BeingSend");
-				m_rawTcpSocket.BeginSend(sendDataBuffer, 0, numBytes, 0, new AsyncCallback(SendCallback), null);
-                Util.LogError("BeginSend");
-            }
-		}
-    }
 
 
 	public void SetSendInFlightFlag(bool flag, string whereIn)
@@ -335,7 +241,6 @@ public class NetGameConnection
 
 	public void SetReceiveInFlightFlag(bool flag, string whereIn)
 	{
-
 		if (receiveInFlightFlag == flag)
 		{
 
@@ -359,6 +264,103 @@ public class NetGameConnection
         }
     }
 
+
+
+    // this is called only in one thread
+    public void PumpSocketSend()
+    {
+        //     Util.LogError("PumpSocketSend " + m_connectionState.ToString());
+
+        if (sendInFlightFlag == true)
+        {
+            //  Util.Log("balling cuz sendInFlightFLag is true ");
+        }
+        else if (m_connectionState != NetGameConnectionState.Connected)
+        {
+            //   Util.LogError("PumpSocketSend Error, not Connected ");
+        }
+        else if (m_rawTcpSocket == null)
+        {
+            Util.LogError("m_rawTcpSocket == null ");
+        }
+        else
+        {
+            // Begin sending the data to the remote device.  
+            List<Message> tempSendList = null;
+            lock (m_sendListLock)
+            {
+                tempSendList = new List<Message>();
+                foreach (var msg in m_sendMessageList)
+                {
+                    tempSendList.Add(msg);
+                }
+
+                m_sendMessageList.Clear();
+            }
+
+            if (tempSendList.Count > 0)
+            {
+                Util.Log("\t>>> Sending shit in SocketSend");
+
+                MemsetZeroBuffer(sendDataBuffer, sendDataBuffer.Length);
+
+                NetSerializer writer = NetSerializer.GetOne();
+                writer.SetupWriteMode("SocketSend", Globals.SerializeWithDebugMarkers);
+
+
+                /*
+                msg0 5
+
+                msg1 7
+
+                - ----- - -------
+
+                0       6
+
+
+                */
+
+                //  Util.LogError("tempSendList count " + tempSendList.Count.ToString());
+
+                int oldCount = writer.GetWriteBufferNumBytes();
+                int newCount = writer.GetWriteBufferNumBytes();
+                // string data = "";
+                foreach (var msg in tempSendList)
+                {
+                    // size of msg, putting 0 for now as a place holder
+                    Int32 msgSizeHeader = 0;
+
+                    writer.WriteInt32(msgSizeHeader, "msgSizeHeader");
+
+
+                    msg.Serialize(writer);
+
+                    newCount = writer.GetWriteBufferNumBytes();
+
+                    int msgSize = newCount - oldCount - 4;
+                    writer.WriteInt32AtIndex(oldCount, msgSize, "msgSizeHeader");
+              //      Util.LogError("Write msgSize " + msgSize.ToString());
+                    oldCount = newCount;
+                }
+
+                sendDataBuffer = writer.GetWriteBufferByteArray();
+                int numBytes = writer.GetWriteBufferNumBytes();
+
+                /*
+                int i = 0;
+                while (i < numBytes)
+                {
+                    Util.LogError("byte is " + sendDataBuffer[i]);
+                    i++;
+                }
+                Util.LogError("Sending " + numBytes.ToString() + " of data");
+                */
+                SetSendInFlightFlag(true, "BeingSend");
+                m_rawTcpSocket.BeginSend(sendDataBuffer, 0, numBytes, 0, new AsyncCallback(SendCallback), null);
+            //    Util.LogError("BeginSend");
+            }
+        }
+    }
 
     private void SendCallback(IAsyncResult ar)
     {
@@ -446,122 +448,68 @@ public class NetGameConnection
 
 		if(endReceiveSuccess == true)
 		{
-			if (numBytesReceived > 0)
-			{
-				int i = 0;
-				while (i < numBytesReceived)
-				{
-					if (m_curMsgSizeInfoIndex < NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
-					{
-						// i'm assuming receiveDataBuffer is in network order?
-						m_curMsgSizeInfoReadBuffer[m_curMsgSizeInfoIndex] = receiveDataBuffer[i];
-						m_curMsgSizeInfoIndex++;
+            if (numBytesReceived > 0)
+            {
+                int i = 0;
+                while (i < numBytesReceived)
+                {
+                    if (m_curMsgSizeInfoIndex < NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
+                    {
+                        // i'm assuming receiveDataBuffer is in network order?
+                        m_curMsgSizeInfoReadBuffer[m_curMsgSizeInfoIndex] = receiveDataBuffer[i];
+                        m_curMsgSizeInfoIndex++;
 
-						if (m_curMsgSizeInfoIndex == NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
-						{
-							if (BitConverter.IsLittleEndian == true)
-							{
-								Array.Reverse(m_curMsgSizeInfoReadBuffer);
-							}
+                        if (m_curMsgSizeInfoIndex == NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
+                        {
+                            if (BitConverter.IsLittleEndian == true)
+                            {
+                                Array.Reverse(m_curMsgSizeInfoReadBuffer);
+                            }
 
-							m_curMsgDataSize = BitConverter.ToInt32(m_curMsgSizeInfoReadBuffer, 0);// data size
-							m_curMsgDataReadBuffer = new byte[m_curMsgDataSize];
-                    	}
-					}
-					else if (m_curMsgDataIndex < m_curMsgDataSize)
-					{
-						m_curMsgDataReadBuffer[m_curMsgDataIndex] = receiveDataBuffer[i];
-						m_curMsgDataIndex++;
+                            m_curMsgDataSize = BitConverter.ToInt32(m_curMsgSizeInfoReadBuffer, 0);// data size
+                            m_curMsgDataReadBuffer = new byte[m_curMsgDataSize];
+                        }
+                    }
+                    else if (m_curMsgDataIndex < m_curMsgDataSize)
+                    {
+                        m_curMsgDataReadBuffer[m_curMsgDataIndex] = receiveDataBuffer[i];
+                        m_curMsgDataIndex++;
 
-						if (m_curMsgDataIndex == m_curMsgDataSize)
-						{
-							Message message = Message.GetOne();
-							// deserialize current payload to a message
+                        if (m_curMsgDataIndex == m_curMsgDataSize)
+                        {
+                            Message message = Message.GetOne();
+                            // deserialize current payload to a message
 
-							NetSerializer reader = NetSerializer.GetOne();
-							reader.SetupReadMode("ReceiveCallback", Globals.SerializeWithDebugMarkers, m_curMsgDataReadBuffer, m_curMsgDataSize);
+                            NetSerializer reader = NetSerializer.GetOne();
+                            reader.SetupReadMode("ReceiveCallback", Globals.SerializeWithDebugMarkers, m_curMsgDataReadBuffer, m_curMsgDataSize);
 
-							message.Deserialize(reader);
-							// then add it to the receiveMsgList
+                            message.Deserialize(reader);
+                            // then add it to the receiveMsgList
 
-							lock (m_receiveMessageListLock)
-							{
-								m_receiveMessageList.Add(message);
-							}
+                            lock (m_receiveMessageListLock)
+                            {
+                                m_receiveMessageList.Add(message);
+                            }
 
-							m_curMsgSizeInfoIndex = 0;
-							m_curMsgDataIndex = 0;
-						}
+                            m_curMsgSizeInfoIndex = 0;
+                            m_curMsgDataIndex = 0;
+                        }
 
-					}
+                    }
 
-					i++;
-				}
-			}
+                    i++;
+                }
+            }
+            else
+            {
+                Util.LogError("numBytesReceived " + numBytesReceived.ToString());
+            }
 			SetReceiveInFlightFlag(false, "ReceiveCallback");
 		}
 
 	//	Util.LogError("At the end of ReceiveCallback");
 	}
-
-
-
-	/*
-    private void ReceiveCallback(IAsyncResult ar)
-    {
-		int numBytesReceived = m_rawTcpSocket.EndReceive(ar);
-
-        if (numBytesReceived > 0)
-        {
-			NetSerializer reader = NetSerializer.GetOne();
-
-			reader.SetupReadMode();
-
-			// string data = "";
-			foreach (var msg in tempSendList)
-			{
-				msg.Serialize(writer);
-			}
-
-			string stream = Encoding.ASCII.GetString(receiveDataBuffer, 0, numBytesReceived);
-
-			PrintBuffer(receiveDataBuffer, numBytesReceived);
-
-			Util.LogError("Here");
-			Util.LogError("Received stuff: numBytesReceived " + numBytesReceived.ToString() + " " + stream.ToString());
-
-
-
-			Util.LogError("temp is " + stream.ToString());
-			stream = m_curStringPayload + stream;
-
-
-			int index = stream.IndexOf(Message.MSG_DIVIDER, StringComparison.CurrentCulture);
-
-			while (index != -1)
-			{
-				string sub = stream.Substring(0, index);
-				Message message = Message.GetOne();
-				message.Deserialize(sub);
-
-				stream = stream.Substring(index + Message.MSG_DIVIDER.Length, stream.Length - (sub.Length + Message.MSG_DIVIDER.Length));
-				index = stream.IndexOf(Message.MSG_DIVIDER, StringComparison.CurrentCulture);
-
-				Util.LogError("type is " + message.type.ToString());
-				Util.LogError("data is " + message.data);
-
-				lock(m_receiveMessageListLock)
-				{
-					m_receiveMessageList.Add(message);
-				}	
-			}
-
-			m_curStringPayload = stream;
-        }
-    }
-    */
-
-
+        
 
 
 	public void ProcessIncomingMessages()
@@ -569,6 +517,8 @@ public class NetGameConnection
 		lock (m_receiveMessageListLock)
 		{
 			// probably better to use a queue?
+        //    Util.LogError("m_receiveMessageList.Count " + m_receiveMessageList.Count.ToString());
+
 			while (m_receiveMessageList.Count != 0)
 			{
 				Message message = m_receiveMessageList[0];

@@ -392,3 +392,15 @@ receive mode. The flag is set to true when BeginReceive starts, then turned off 
 As a matter of fact, the NetGameConnection class also has a flag for when sending messages. It does the same job, which is to prevent multiple BeginSend
 or BeginReceive threads being generated.
 
+
+
+
+##################################################################################
+##################################### 2017/09/13 #################################
+##################################################################################
+
+I have gotten to the point where i am working on the simulation and I have the server sending EndFrame information from the server to client
+I have made the small change where I changed the the serverFrameInfoList from simulation class to the clientSimulation class.
+
+only the client should be aware of the serverFrameInfoList, which is why I made this move
+

@@ -111,6 +111,18 @@ public class NetBuffer
 		return WriteData(byteArray, 0, byteArray.Length);
 	}
 
+
+    public bool WriteBool(bool valueIn)
+    {
+        int length = sizeof(bool);
+        byte[] byteArray = BitConverter.GetBytes(valueIn);
+
+        // convert from NativeEndian to Network Endian
+        NetUtil.NativeToNetworkEndian(byteArray, 0, length);
+
+        return WriteData(byteArray, 0, byteArray.Length);
+    }
+
 	// writing from byteArrayIn to internalBuffer
 	public bool WriteData(byte[] srcByteArrayIn, int positionToReadFrom, int numBytesToWrite)
 	{
@@ -172,6 +184,26 @@ public class NetBuffer
 		}
 		return val;
 	}
+
+
+    public bool ReadBool()
+    {
+        int numberBytesToRead = sizeof(bool);
+        ReadData(m_tempReadByteArray, 0, numberBytesToRead);
+
+        NetUtil.NativeToNetworkEndian(m_tempReadByteArray, 0, numberBytesToRead);
+
+        bool val = false;
+        try
+        {
+            val = BitConverter.ToBoolean(m_tempReadByteArray, 0);
+        }
+        catch(System.Exception exceptionIn)
+        {
+            Util.LogError("error reading in ReadBool");
+        }
+        return val;
+    }
 
 	// reading from internalBuffer to desByteArray
 	// positionToWriteFrom refers to the position to start writing for destByteArrayIn

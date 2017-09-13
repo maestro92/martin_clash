@@ -4,6 +4,7 @@ public class Game
 {
 	public static void Main(string[] args)
 	{		
+        Config.Init();
 
 		Util.OnLog = (s) =>
 			{

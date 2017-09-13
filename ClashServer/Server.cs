@@ -83,7 +83,9 @@ public class Server
 
 	private Object m_connectionLock = new Object();
 
-	private MatchMaker m_matchMaker;
+	private int userCounter;
+
+	private MatchManager m_matchMaker;
 
 	// Thread signal.  
 	public static ManualResetEvent m_allDone = new ManualResetEvent(false);
@@ -94,10 +96,10 @@ public class Server
 		m_isRunning = false;
 		m_clientIdCounter = 0;
 
-		m_matchMaker = new MatchMaker();
+		m_matchMaker = new MatchManager();
 		Console.WriteLine("init server");
 
-
+		userCounter = 10;
 	}
 
 	// set up the IP address and port, then start accepting commands
@@ -294,7 +296,8 @@ public class Server
 
 			case Message.Type.Login:
 				Util.Log("\tHandling Login");
-				Message loginResponse = Message.LoginResponse();
+				int userId = userCounter++;
+				Message loginResponse = Message.LoginResponse(userId);
 				connection.SendMessage(loginResponse);
 				break;
 

@@ -46,10 +46,13 @@
     <Compile Include="Shared\AttackerHelper.cs" />
     <Compile Include="Shared\TowerHelper.cs" />
     <Compile Include="Shared\TroopHelper.cs" />
-    <Compile Include="MatchMaker.cs" />
+    <Compile Include="MatchManager.cs" />
     <Compile Include="Shared\Net\NetSerializer.cs" />
     <Compile Include="Shared\Net\NetBuffer.cs" />
     <Compile Include="Shared\Net\NetUtil.cs" />
+    <Compile Include="ServerSimulation.cs" />
+    <Compile Include="Shared\ServerFrameInfo.cs" />
+    <Compile Include="Shared\Card.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />
@@ -71,6 +74,8 @@
     <None Include="Shared\AttackerHelper.cs.meta" />
     <None Include="Shared\TowerHelper.cs.meta" />
     <None Include="Shared\TroopHelper.cs.meta" />
+    <None Include="Shared\ServerFrameInfo.cs.meta" />
+    <None Include="Shared\Card.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

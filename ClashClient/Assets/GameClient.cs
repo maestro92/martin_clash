@@ -11,15 +11,23 @@ and in these PumpFunctions, do the actual work
 public class GameClient
 {
     public Action OnLogin;
+    public Action OnStartBattle;
+
+    public int userId;
+    public NetGameConnection connection;
+
+    // we want to store all the message relevant to the simulation 
+    // in here. Most of the time, simulation relevant stuff are frame sensitive,
+    // meaning, the code needs to run at the correct frame, For example, casting cards,
+    // therefore, we want to process these message at the correct frameNumber
+    private Queue<Message> m_simMessageQueue;
+    private ClientSimulation clientSim;
 
     public GameClient()
     {
-
+        m_simMessageQueue = new Queue<Message>();
     }
 
-    public NetGameConnection connection;
-
-    private ClientSimulation clientSim;
 
     public void StartNetworkSession(string hostIPAddress, Action OnLoginIn)
     {
@@ -56,6 +64,20 @@ public class GameClient
 
         if (clientSim != null)
         {
+    
+            while (m_simMessageQueue.Count > 0 && m_simMessageQueue.Peek().frameCount == clientSim.simulation.curFrameCount)
+            {
+                Message msg = m_simMessageQueue.Dequeue();
+
+                if (msg.type == Message.Type.CastCard)
+                {
+                    Debug.LogError("#########>>>>>>>>>>>>>> Casting Card");
+                    clientSim.simulation.CastCard(msg.cardType, msg.teamId, msg.position);
+                }
+            }
+
+
+
             clientSim.Tick();
         }
     }
@@ -73,14 +95,14 @@ public class GameClient
         switch (message.type)
         {
             case Message.Type.ServerConnectResponse:
-                Util.LogError("Handling ServerClientResponse");
+           //     Util.LogError("Handling ServerClientResponse");
                 Message loginRequest = Message.Login();
                 connection.SendMessage(loginRequest);
                 break;
 
             case Message.Type.LoginResponse:
-                Util.LogError("Handling LoginResponse");
-
+            //    Util.LogError("Handling LoginResponse");
+                this.userId = message.userId;
                 if (OnLogin != null)
                 {
                     OnLogin();
@@ -89,11 +111,37 @@ public class GameClient
                 break;
                          
             case Message.Type.BattleStartingInfo:
+          /*
                 Util.Log("Handling BattleStartingInfo Message");
-                Main.instance.GoToBattle();
+                if (userId == 11)
+                {
+                    Util.LogError("$$$$$$$$$$$$$$$$$$$$ starting battle");
+                }
+                */
+                StartBattle(message.bs);
                 break;
 
+            case Message.Type.EndFrame:
+                /*
+                Util.LogError("EndFrame");
+           //     message.serverFrameInfo.Print();
+                Util.LogError("is serverFrameInfo null ? " + (message.serverFrameInfo == null));
+                Util.LogError("userId " + userId.ToString());
+                Util.LogError("clientSim ? " + (clientSim == null));
+                Util.LogError("clientSim.serverFrameInfoList ? " + (clientSim.serverFrameInfoList == null));
+                */
+                clientSim.serverFrameInfoList.Add(message.serverFrameInfo);
+                break;
+
+            case Message.Type.CastCard:
+                Util.LogError("Cast Card");
+                m_simMessageQueue.Enqueue(message);
+                break;
+
+
+
             default:
+                Util.LogError("Default, message type not OnHandled");
                 break;
         }
 
@@ -116,14 +164,21 @@ public class GameClient
         Message message = Message.SearchMatch();
         connection.SendMessage(message);
     }
-
-
+        
     public void StartBattle(BattleStartingInfo bs)
     {
+        Debug.LogError(">>>>>>>>>>>> Game Client StartBattle");
+        m_simMessageQueue.Clear();
+
         clientSim = new ClientSimulation();
         clientSim.state = ClientPlayerState.GetOne();
         clientSim.state.teamId = Enums.Team.Team0;
-        clientSim.Init();   
+        clientSim.Init(bs);   
+
+        if (OnStartBattle != null)
+        {
+            OnStartBattle();
+        }
     }
 }
 

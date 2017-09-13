@@ -1,7 +1,5 @@
 ﻿using System;
-
-
-
+using UnityEngine;
 
 public class Message : INetSerializer
 {
@@ -21,12 +19,23 @@ public class Message : INetSerializer
         LoginResponse,
         SearchMatch,
 		BattleStartingInfo,
+
+        CastCard,
+        EndFrame,
     };
 
     public Type type;
-
+	public int userId;
+    public Enums.Team teamId;
+    public Vector3 position;
+    public int frameCount;
 	public BattleStartingInfo bs;
+    public Card card;
+	public Enums.CardType cardType;
+    public ServerFrameInfo serverFrameInfo;
 //	public int mapId;	// just testing writeIn using this
+
+    public bool isSimFrameSensitive;
 
     private Message()
     {
@@ -60,6 +69,7 @@ public class Message : INetSerializer
 
 		message.type = (Message.Type)(numType);
 	//	message.data = strData;
+        message.isSimFrameSensitive = false;
 		return message;
 	}
 
@@ -85,10 +95,11 @@ public class Message : INetSerializer
         return message;
     }
 
-    public static Message LoginResponse()
+    public static Message LoginResponse(int userId)
     {
         Message message = Message.GetOne(Type.LoginResponse);
-     //   message.data = "LoginResponse";
+		message.userId = userId;
+		//   message.data = "LoginResponse";
         return message;
     }
 
@@ -106,36 +117,65 @@ public class Message : INetSerializer
         return message;
     }
 
+    public static Message CastCard(Enums.CardType cardType)
+    {
+        Message message = Message.GetOne(Type.CastCard);
+//        message.card = card;
+        message.cardType = cardType;
+        return message;
+    }
+        
+    public static Message EndFrame(ServerFrameInfo serverFrameInfo)
+    {
+        Message message = Message.GetOne(Type.EndFrame);
+		message.serverFrameInfo = serverFrameInfo;
+        return message;
+    }
+
 	public void Serialize(NetSerializer writer)
 	{
         writer.WriteEnumAsInt<Message.Type>(type, "message.type");
 
+
 		switch (type)
 		{
             case Message.Type.ClientConnectRequest:
-                Util.Log("serialize ClientConnectRequest");
+       //         Util.Log("serialize ClientConnectRequest");
                 break;
 
             case Message.Type.Login:
-                Util.Log("Login");
+        //        Util.Log("Login");
                 break;
 
             case Message.Type.LoginResponse:
-                Util.Log("serialize LoginResponse ");
+          //      Util.Log("serialize LoginResponse ");
+                writer.WriteInt32(userId, "userId");
                 break;
 
-
 			case Message.Type.SearchMatch:
-                Util.Log("serialize SearchMatch");
+         //       Util.Log("serialize SearchMatch");
 			    break;
 
 			case Message.Type.ServerConnectResponse:
-				Util.Log("serialize ServerConnectResponse");
+		//		Util.Log("serialize ServerConnectResponse");
 				break;
 
+            case Message.Type.CastCard:
+              //  if (isSimFrameSensitive == true)
+              //  {
+                    writer.WriteBool(isSimFrameSensitive, "isSimFrameSensitive");
+             //   }
+             //   isSimFrameSensitive
+                break;
+
 			case Message.Type.BattleStartingInfo:
-                Util.Log("message serialize bs");
+          //      Util.Log("message serialize bs");
 				writer.WriteOne<BattleStartingInfo>(bs, "battleStartingInfo");
+				break;
+            
+            case Message.Type.EndFrame:
+           //     Util.Log("EndFrame");
+                writer.WriteOne<ServerFrameInfo>(serverFrameInfo, "ServerFrameInfo");
 				break;
 
             default:                            
@@ -148,19 +188,24 @@ public class Message : INetSerializer
 	{
 
         type = reader.ReadEnumAsInt<Message.Type>("message.type");
-        Util.LogError("\t\tDeserializing Msg " + type.ToString());
+    //    Util.LogError("\t\tDeserializing Msg " + type.ToString());
+
+
+
         switch (type)
 		{
 			case Message.Type.ClientConnectRequest:
-				Util.Log("msg deserialize ClientConnectRequestion");
+			//	Util.Log("msg deserialize ClientConnectRequestion");
 				break;
 
             case Message.Type.Login:
-                Util.Log("deserialize Login ");
+            //    Util.Log("deserialize Login ");
+
                 break;
 
             case Message.Type.LoginResponse:
-                Util.Log("deserialize LoginResponse ");
+            //    Util.Log("deserialize LoginResponse ");
+                userId = reader.ReadInt32("userId");
                 break;
 
 
@@ -169,33 +214,43 @@ public class Message : INetSerializer
 				break;
 				
 			case Message.Type.ServerConnectResponse:
-				Util.Log("deserialize ServerConnectResponse");
+			//	Util.Log("deserialize ServerConnectResponse");
 				break;
 				
             case Message.Type.BattleStartingInfo:
-                Util.Log("message deserialize, deserailize");
-                Util.LogError("message BattleStartingInfo, deserailize");
+          //      Util.Log("message deserialize, deserailize");
+          //      Util.LogError("message BattleStartingInfo, deserailize");
 
                 bs = reader.ReadOne<BattleStartingInfo>(() => BattleStartingInfo.GetOne(), "battleStartingInfo");
 
 
-                Util.LogError("#### BattleStartingInfo MaiMeng");
+          //      Util.LogError("#### BattleStartingInfo MaiMeng");
 
                 bs.Print();
                 break;
 
+            case Message.Type.CastCard:
+                
+                break;
+
+            case Message.Type.EndFrame:
+           //     Util.LogError("message EndFrame, deserailize");
+                serverFrameInfo = reader.ReadOne<ServerFrameInfo>(() => ServerFrameInfo.GetOne(), "serverFrameInfo"); 
+
+                break;
             default:
+                Util.LogError("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
                 throw new Exception("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
                 break;
 		}
 
 
-		Print();
+	//	Print();
 	}
 
 	public void Print()
 	{
-		Util.Log("\t\t>>type " + type.ToString());
+	//	Util.Log("\t\t>>type " + type.ToString());
     //    Util.Log("mapId " + mapId.ToString());
 
     }

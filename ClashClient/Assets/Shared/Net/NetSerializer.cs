@@ -210,7 +210,7 @@ public class NetSerializer
 		m_readContextList.RemoveAt(m_readContextList.Count - 1);
 	}
 
-	public void WriteInt32AtIndex(string varLogName, int value, int index)
+	public void WriteInt32AtIndex(int index, int value, string varLogName)
 	{
 		if (m_mode != NetSerializationMode.Writer)
 		{
@@ -228,10 +228,10 @@ public class NetSerializer
         }
 
         Int32 intval = (Int32) Convert.ToInt32( valueIn );
-        WriteInt32(varLogName, intval);
+        WriteInt32(intval, varLogName);
     }
 
-	public void WriteInt32(string varLogName, int value)
+    public void WriteInt32(int value, string varLogName)
 	{
 		if (m_mode != NetSerializationMode.Writer)
 		{
@@ -241,6 +241,15 @@ public class NetSerializer
 		m_writeBuffer.WriteInt32(value);
 	}
 
+
+    public void WriteBool(bool value, string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Writer)
+        {
+            ThrowException("NetSerializer.WriteBool(): Not in writer mode!!!!");
+        }
+        m_writeBuffer.WriteBool(value);
+    }
 
     public T ReadEnumAsInt<T>(string varLogName)
     {
@@ -284,6 +293,26 @@ public class NetSerializer
 		}
 		return value;
 	}
+
+    public bool ReadBool(string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Reader)
+        {
+            ThrowException("NetSerializer.ReadBool(): Not in reader mode!!!!");
+        }
+
+        bool value = false;
+
+        try
+        {
+            value = m_readBuffer.ReadBool();
+        }
+        catch (System.Exception exceptionIn)
+        {
+            ThrowException(exceptionIn.ToString());
+        }
+        return value;
+    }
 
 	public void ThrowException(string messageIn)
 	{

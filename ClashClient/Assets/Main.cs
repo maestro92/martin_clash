@@ -97,6 +97,12 @@ public class Main : MonoBehaviour
     void InitMainGameClient()
     {
         mainGameClient = CreateNewGameClient();
+
+        mainGameClient.OnStartBattle = () =>
+        {
+            GoToBattle();
+        };
+
         mainGameClient.StartNetworkSession(networkManager.GetServerIPAddress(), OnLoginAsMainGameClient);
 
     }
@@ -172,9 +178,6 @@ public class Main : MonoBehaviour
 
         ui.battleHud.Activate();
 
-
-        mainGameClient.StartBattle(null);
-
         bvc = ClientUtil.Instantiate("BattleView").GetComponent<BattleViewController>();
 
         bvc.Init(mainGameClient.GetClientSimulation());
@@ -198,13 +201,13 @@ public class Main : MonoBehaviour
 
     public void SearchMatchVsAI()
     {
-        /*
+        
         // start up an AI
         GameClient aiClient = CreateNewGameClient();
         aiClient.StartNetworkSession(Main.instance.networkManager.GetServerIPAddress(), ()=> {
             aiClient.SearchMatch();
         });
-        */
+
 
         mainGameClient.SearchMatch();
     }

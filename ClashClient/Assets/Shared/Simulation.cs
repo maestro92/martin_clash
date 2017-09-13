@@ -19,6 +19,9 @@ public class Simulation
 
     public Action<Entity> OnAddEntity;
 
+
+
+
     public void Init(BattleStartingInfo bs)
     {
         m_entities = new List<Entity>();
@@ -65,7 +68,7 @@ public class Simulation
                 foreach (var tower in temp)
                 {
                     tower.position = towerPositions[i];
-                    Util.LogError("tower Position " + tower.position);
+            //        Util.LogError("tower Position " + tower.position);
                     AddEntityNow(tower);
                     i++;
                 }
@@ -86,8 +89,9 @@ public class Simulation
 
 
 	// Update is called once per frame
-	public void Update () 
+	public void Tick () 
 	{
+	//	Util.LogError("curFrameCount " + curFrameCount.ToString());
 
         curFrameCount++;
 
@@ -105,7 +109,7 @@ public class Simulation
 
         foreach(var entity in m_entitiesToAdd)
         {
-            Util.LogError("adding entities");
+        //    Util.LogError("adding entities");
             AddEntityNow(entity);
         }
         m_entitiesToAdd.Clear();

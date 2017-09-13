@@ -76,6 +76,7 @@
      <Compile Include="Assets\Shared\Net\NetUtil.cs" />
      <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
      <Compile Include="Assets\Shared\PhysBody.cs" />
+     <Compile Include="Assets\Shared\ServerFrameInfo.cs" />
      <Compile Include="Assets\Shared\Simulation.cs" />
      <Compile Include="Assets\Shared\TowerHelper.cs" />
      <Compile Include="Assets\Shared\TroopHelper.cs" />
