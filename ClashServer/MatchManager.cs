@@ -84,6 +84,21 @@ public class MatchManager
 	}
 
 
+	public ServerSimulation FindSimulation(ServerClientHandle client)
+	{
+		lock(matchesLock)
+		{
+			foreach (var match in matches)
+			{
+				if (match.gameClients.Contains(client) == true)
+				{
+					return match;
+				}
+			}
+		}
+		return null;
+	}
+
 	public void StartMatch(BattleStartingInfo bs, List<ServerClientHandle> clients)
 	{		
 		ServerSimulation serverSim = new ServerSimulation();

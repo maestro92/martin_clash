@@ -64,15 +64,17 @@ public class GameClient
 
         if (clientSim != null)
         {
-    
+      //      Util.LogError("m_simMessageQueue.Count " + m_simMessageQueue.Count.ToString());
             while (m_simMessageQueue.Count > 0 && m_simMessageQueue.Peek().frameCount == clientSim.simulation.curFrameCount)
             {
+        //        Util.LogError("m_simMessageQueue.Peek().frameCount " + m_simMessageQueue.Peek().frameCount.ToString());
+
                 Message msg = m_simMessageQueue.Dequeue();
 
                 if (msg.type == Message.Type.CastCard)
                 {
                     Debug.LogError("#########>>>>>>>>>>>>>> Casting Card");
-                    clientSim.simulation.CastCard(msg.cardType, msg.teamId, msg.position);
+                    clientSim.simulation.CastCard(msg.cardType, msg.teamId, msg.simPosition);
                 }
             }
 
@@ -135,13 +137,17 @@ public class GameClient
 
             case Message.Type.CastCard:
                 Util.LogError("Cast Card");
+                Util.LogError("message " + message.playerId);
+                Util.LogError("message frameCount" + message.frameCount);
+
+                Util.LogError("simulation frameCount " + GetClientSimulation().simulation.curFrameCount.ToString());
                 m_simMessageQueue.Enqueue(message);
                 break;
 
 
 
             default:
-                Util.LogError("Default, message type not OnHandled");
+                Util.LogError("Default, message type " + message.type.ToString() + " not OnHandled");
                 break;
         }
 

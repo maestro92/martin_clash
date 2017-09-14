@@ -132,8 +132,9 @@ public class Simulation
     }
 
 
-    public void CastCard(Enums.CardType cardType, Enums.Team teamId, Vector3 position)
+    public void CastCard(Enums.CardType cardType, Enums.Team teamId, Vector3 simPos)
     {
+        Util.LogError("CastCard");
         CardConfig config = Config.cardConfigs[cardType];
 //        Debug.LogError("cast card");
 //        Debug.LogError("\tcast count " + config.positions.Count);
@@ -142,7 +143,7 @@ public class Simulation
         {
             Entity entity = Entity.GetOne(config.entityType);
 
-            Vector3 clampedPos = position + pos;
+            Vector3 clampedPos = simPos + pos;
 
 
             clampedPos = map.ClampSimPos(clampedPos);

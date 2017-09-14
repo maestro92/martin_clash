@@ -28,6 +28,7 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
     List<GameObject> tiles = new List<GameObject>();
 
     public ClientSimulation clientSim;
+    public ClientPlayerState myPlayerState;
 
     public static float ENTITY_VIEW_Z_OFFSET = -5;
 
@@ -45,7 +46,7 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
         entityViews = new List<EntityView>();
 
 
-
+        myPlayerState = clientSim.state;
 
         clientSim.simulation.OnAddEntity = (entity) => {
 
@@ -169,7 +170,7 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
 
             if (BattleHudCardBtnController.lastSelectedBtn != null)
             {
-
+                
                 Vector3 worldPoint = worldCamera.ScreenToWorldPoint(eventData.position);
 //                Vector3 localWorldPoint = grass.transform.InverseTransformPoint(worldPoint);
 
@@ -181,8 +182,14 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
             //    Debug.LogError("eventData.position " + eventData.position);
             //    Debug.LogError("worldPoint " + localWorldPoint);
 
+
+
+                Vector3 simPos = world2Sim(localWorldPoint);
+
+
            //     clientSim.simulation.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType, clientSim.state.teamId, localWorldPoint);
-                Message castCardMsg = Message.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType);
+                Message castCardMsg = Message.CastCard(BattleHudCardBtnController.lastSelectedBtn.cardConfig.cardType, 
+                    myPlayerState.playerId, simPos, 0, true);
                 Main.instance.mainGameClient.connection.SendMessage(castCardMsg);
             }
         }
@@ -192,5 +199,11 @@ public class BattleViewController : MonoBehaviour, IPointerDownHandler, IPointer
         }
     }
         
+
+    public static Vector3 world2Sim(Vector3 worldPoint)
+    {
+        return worldPoint;
+    }
+
 }
 

@@ -44,13 +44,13 @@ public class ClientSimulation
 
         if(serverFrameInfoList.Count <= 0)
         {
-            Util.LogError("serverFrameInfoList is empty, No Frames to consume");
+            Util.Log("serverFrameInfoList is empty, No Frames to consume");
             return false;
         }
 
         if (serverFrameInfoList[0].frameCount <= simulation.curFrameCount)
         {
-            Util.LogError("serverFrameInfoList is lower than simulation curFrameCount");
+            Util.Log("serverFrameInfoList is lower than simulation curFrameCount");
             return false;
         }
 

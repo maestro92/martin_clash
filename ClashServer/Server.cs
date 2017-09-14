@@ -85,7 +85,7 @@ public class Server
 
 	private int userCounter;
 
-	private MatchManager m_matchMaker;
+	private MatchManager m_matchManager;
 
 	// Thread signal.  
 	public static ManualResetEvent m_allDone = new ManualResetEvent(false);
@@ -96,7 +96,7 @@ public class Server
 		m_isRunning = false;
 		m_clientIdCounter = 0;
 
-		m_matchMaker = new MatchManager();
+		m_matchManager = new MatchManager();
 		Console.WriteLine("init server");
 
 		userCounter = 10;
@@ -229,7 +229,7 @@ public class Server
 			}
 		}
 
-		m_matchMaker.Tick();
+		m_matchManager.Tick();
 
 	}
 
@@ -301,13 +301,26 @@ public class Server
 				connection.SendMessage(loginResponse);
 				break;
 
+
 			case Message.Type.SearchMatch:
 				Util.Log("\tHandling " + currentClient.id.ToString() + " SearchMatch Request");
 				// put player in queue
-				m_matchMaker.AddPlayerToQueue(currentClient);
+				m_matchManager.AddPlayerToQueue(currentClient);
+				break;
+
+			case Message.Type.CastCard:
+				Util.LogError("\tCastCard");
+				ServerSimulation serverSimulation = m_matchManager.FindSimulation(currentClient);
+				if (serverSimulation != null)
+				{
+					m_matchManager.FindSimulation(currentClient);
+					message.frameCount = serverSimulation.simulation.curFrameCount;
+					serverSimulation.BroadCastMsgNoWait(message);
+				}
 				break;
 
 			default:
+				Util.LogError("OnHandledMessage() : produced unsupported message type: " + message.type.ToString() + "!!!");
 				break;
 		}
 	}

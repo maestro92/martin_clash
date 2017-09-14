@@ -112,6 +112,29 @@ public class NetBuffer
 	}
 
 
+    public bool WriteFloat(float valueIn)
+    {
+        int length = sizeof(float);
+        byte[] byteArray = BitConverter.GetBytes(valueIn);
+
+        NetUtil.NativeToNetworkEndian(byteArray, 0, length);
+
+        return WriteData(byteArray, 0, byteArray.Length);
+    }
+
+    /*
+    // Primitive means the most basic data types
+    public bool WritePrimitive<T> (T valueIn)
+    {
+        int length = sizeof(T);
+        byte[] byteArray = BitConverter.GetBytes(valueIn);
+
+        NetUtil.NativeToNetworkEndian(byteArray, 0, length);
+
+        return WriteData(byteArray, 0, byteArray.Length);
+    }
+    */
+
     public bool WriteBool(bool valueIn)
     {
         int length = sizeof(bool);
@@ -204,6 +227,49 @@ public class NetBuffer
         }
         return val;
     }
+
+    public float ReadFloat()
+    {
+        int numberBytesToRead = sizeof(float);
+        ReadData(m_tempReadByteArray, 0, numberBytesToRead);
+
+        NetUtil.NativeToNetworkEndian(m_tempReadByteArray, 0, numberBytesToRead);
+
+        float val = 0;
+        try 
+        {
+            val = BitConverter.ToSingle(m_tempReadByteArray, 0);
+        }
+        catch(System.Exception exceptionIn)
+        {
+            Util.LogError("error reading in ReadPrimitive");
+        }
+
+        return val;
+    }
+
+    /*
+     doesn't work cuz BitConverter<T> doesn't work
+    public T ReadPrimitive<T>()
+    {
+        int numberBytesToRead = sizeof(T);
+        ReadData(m_tempReadByteArray, 0, numberBytesToRead);
+
+        NetUtil.NativeToNetworkEndian(m_tempReadByteArray, 0, numberBytesToRead);
+
+        T val = default(T);
+        try 
+        {
+            val = BitConverter.To
+        }
+        catch(System.Exception exceptionIn)
+        {
+            Util.LogError("error reading in ReadPrimitive");
+        }
+
+        return T
+    }
+    */
 
 	// reading from internalBuffer to desByteArray
 	// positionToWriteFrom refers to the position to start writing for destByteArrayIn

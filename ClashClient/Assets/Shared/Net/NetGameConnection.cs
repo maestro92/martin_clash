@@ -213,7 +213,7 @@ public class NetGameConnection
 
     public void SendMessage(Message message)
     {
-        Util.Log("\t>>> calling SendMessage " + message.type.ToString());
+    //    Util.Log("\t>>> calling SendMessage " + message.type.ToString());
 		lock (m_sendListLock)
 		{
 			m_sendMessageList.Add(message);
@@ -300,7 +300,7 @@ public class NetGameConnection
 
             if (tempSendList.Count > 0)
             {
-                Util.Log("\t>>> Sending shit in SocketSend");
+            //    Util.Log("\t>>> Sending shit in SocketSend");
 
                 MemsetZeroBuffer(sendDataBuffer, sendDataBuffer.Length);
 
@@ -442,7 +442,7 @@ public class NetGameConnection
 		}
 
 
-		Util.LogError("ReceivedCallback, numBytesReceived " + numBytesReceived.ToString());
+	//	Util.LogError("ReceivedCallback, numBytesReceived " + numBytesReceived.ToString());
 		// byte counter
 
 

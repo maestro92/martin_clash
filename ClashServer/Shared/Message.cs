@@ -26,8 +26,9 @@ public class Message : INetSerializer
 
     public Type type;
 	public int userId;
+    public int playerId;
     public Enums.Team teamId;
-    public Vector3 position;
+    public Vector3 simPosition;
     public int frameCount;
 	public BattleStartingInfo bs;
     public Card card;
@@ -117,13 +118,17 @@ public class Message : INetSerializer
         return message;
     }
 
-    public static Message CastCard(Enums.CardType cardType)
+    public static Message CastCard(Enums.CardType cardType, int playerId, Vector3 simPosition, int frameCount, bool isSimFrameSensitive)
     {
         Message message = Message.GetOne(Type.CastCard);
-//        message.card = card;
         message.cardType = cardType;
+        message.playerId = playerId;
+        message.simPosition = simPosition;
+        message.frameCount = frameCount;
+        message.isSimFrameSensitive = isSimFrameSensitive;
         return message;
     }
+
         
     public static Message EndFrame(ServerFrameInfo serverFrameInfo)
     {
@@ -161,11 +166,11 @@ public class Message : INetSerializer
 				break;
 
             case Message.Type.CastCard:
-              //  if (isSimFrameSensitive == true)
-              //  {
-                    writer.WriteBool(isSimFrameSensitive, "isSimFrameSensitive");
-             //   }
-             //   isSimFrameSensitive
+                writer.WriteEnumAsInt<Enums.CardType>(cardType, "cardType");
+                writer.WriteInt32(playerId, "playerId");
+                writer.WriteVector3(simPosition, "simPosition");
+                writer.WriteInt32(frameCount, "frameCount");
+                writer.WriteBool(isSimFrameSensitive, "isSimFrameSensitive");
                 break;
 
 			case Message.Type.BattleStartingInfo:
@@ -178,7 +183,8 @@ public class Message : INetSerializer
                 writer.WriteOne<ServerFrameInfo>(serverFrameInfo, "ServerFrameInfo");
 				break;
 
-            default:                            
+            default:   
+                Util.LogError("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
                 throw new Exception("Unsupported message type \"" + type.ToString() + "\"!!!");
                 break;
 		}
@@ -230,8 +236,13 @@ public class Message : INetSerializer
                 break;
 
             case Message.Type.CastCard:
-                
+                cardType = reader.ReadEnumAsInt<Enums.CardType>("cardType");
+                playerId = reader.ReadInt32("playerId");
+                simPosition = reader.ReadVector3("simPosition");
+                frameCount = reader.ReadInt32("frameCount");
+                isSimFrameSensitive = reader.ReadBool("isSimFrameSensitive");
                 break;
+
 
             case Message.Type.EndFrame:
            //     Util.LogError("message EndFrame, deserailize");

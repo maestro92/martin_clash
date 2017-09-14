@@ -2,6 +2,7 @@
 
 public class ClientPlayerState
 {
+    public int playerId;
     public Enums.Team teamId;
 
     private ClientPlayerState()

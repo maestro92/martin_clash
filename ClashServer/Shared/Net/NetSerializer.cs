@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-
+using UnityEngine;
 
 public enum NetSerializationFormat
 {
@@ -251,6 +251,18 @@ public class NetSerializer
         m_writeBuffer.WriteBool(value);
     }
 
+
+    public void WriteVector3(Vector3 value, string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Writer)
+        {
+            ThrowException("NetSerializer.WriteVector3(): Not in writer mode!!!!");
+        }
+        m_writeBuffer.WriteFloat(value.x);
+        m_writeBuffer.WriteFloat(value.y);
+        m_writeBuffer.WriteFloat(value.z);
+    }
+
     public T ReadEnumAsInt<T>(string varLogName)
     {
 		if (m_mode != NetSerializationMode.Reader)
@@ -294,6 +306,26 @@ public class NetSerializer
 		return value;
 	}
 
+    public float ReadFloat(string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Reader)
+        {
+            ThrowException("NetSerializer.ReadFloat(): Not in float mode!!!!");
+        }
+
+        float value = 0;
+
+        try
+        {
+            value = m_readBuffer.ReadFloat();
+        }
+        catch (System.Exception exceptionIn)
+        {
+            ThrowException(exceptionIn.ToString());
+        }
+        return value;
+    }
+
     public bool ReadBool(string varLogName)
     {
         if (m_mode != NetSerializationMode.Reader)
@@ -311,6 +343,23 @@ public class NetSerializer
         {
             ThrowException(exceptionIn.ToString());
         }
+        return value;
+    }
+
+
+    public Vector3 ReadVector3(string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Reader)
+        {
+            ThrowException("NetSerializer.ReadVector3(): Not in reader mode!!!!");
+        }
+
+        Vector3 value = default(Vector3);
+
+        value.x = m_readBuffer.ReadFloat(); 
+        value.y = m_readBuffer.ReadFloat();  
+        value.z = m_readBuffer.ReadFloat(); 
+
         return value;
     }
 
