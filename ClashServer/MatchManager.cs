@@ -10,7 +10,7 @@ public class MatchManager
 	public List<ServerClientHandle> playerQueue;
 	public List<ServerSimulation> matches;
 	public object matchesLock;
-	public Util.RateRegulator rateRegulator;
+	public RateRegulator rateRegulator;
 
 	public MatchManager()
 	{
@@ -18,7 +18,7 @@ public class MatchManager
 		matches = new List<ServerSimulation>();
 		matchesLock = new object();
 
-		rateRegulator = new Util.RateRegulator(Globals.FRAMES_PER_SECOND);
+		rateRegulator = new RateRegulator(Globals.FRAMES_PER_SECOND);
 		rateRegulator.Start();
 
 	}

@@ -53,6 +53,8 @@
     <Compile Include="ServerSimulation.cs" />
     <Compile Include="Shared\ServerFrameInfo.cs" />
     <Compile Include="Shared\Card.cs" />
+    <Compile Include="Shared\RateRegulator.cs" />
+    <Compile Include="Shared\RateSmoother.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />
@@ -76,6 +78,8 @@
     <None Include="Shared\TroopHelper.cs.meta" />
     <None Include="Shared\ServerFrameInfo.cs.meta" />
     <None Include="Shared\Card.cs.meta" />
+    <None Include="Shared\RateRegulator.cs.meta" />
+    <None Include="Shared\RateSmoother.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

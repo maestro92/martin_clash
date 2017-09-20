@@ -13,6 +13,7 @@ public class Main : MonoBehaviour
     public Camera uiCamera;
   //  public BattleHudController hud;
 
+    public ClientDebugPanel clientDebugPanel;
 
     public BattleViewController bvc;
 
@@ -129,6 +130,15 @@ public class Main : MonoBehaviour
     }
 
 	
+
+    void OnGUI()
+    {
+        if (clientDebugPanel != null)
+        {
+
+        }
+
+    }
 
 	// all the clientSimulation related stuff
     // as well as Simulation Tick is placed in here

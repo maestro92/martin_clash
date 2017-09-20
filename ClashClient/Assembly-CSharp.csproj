@@ -53,6 +53,7 @@
      <Compile Include="Assets\Battle\EntityView.cs" />
      <Compile Include="Assets\BattleScreenController.cs" />
      <Compile Include="Assets\CardScreenController.cs" />
+     <Compile Include="Assets\ClientDebugPanel.cs" />
      <Compile Include="Assets\ClientPlayerState.cs" />
      <Compile Include="Assets\ClientSimulation.cs" />
      <Compile Include="Assets\ClientUtil.cs" />
@@ -76,6 +77,8 @@
      <Compile Include="Assets\Shared\Net\NetUtil.cs" />
      <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
      <Compile Include="Assets\Shared\PhysBody.cs" />
+     <Compile Include="Assets\Shared\RateRegulator.cs" />
+     <Compile Include="Assets\Shared\RateSmoother.cs" />
      <Compile Include="Assets\Shared\ServerFrameInfo.cs" />
      <Compile Include="Assets\Shared\Simulation.cs" />
      <Compile Include="Assets\Shared\TowerHelper.cs" />
