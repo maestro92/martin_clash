@@ -416,6 +416,67 @@ Another that I found out about Unity Cameras.
 Well, it's more of a OpenGL type thing. if you don't clear the proper flags on your camera
 things drawn on the previous frame will persist. So make sure you clear the righr flags.
 
+So for our project, we have the following setup
+
+UICamera
+	Clear Flags: Depth Only
+	Culling Mask: UI
+
+BattleView
+	UI (has a camera)
+	World
+		Camera
+
+
+when I was messing with the ClientDebugPanel, drawing stuff with GUI.Button, I ran into a problem
+where screen was not getting cleaned up. For example, If was drawing a button in one frame
+and in the next frame, I don't render it, the GUI.Button somehow remains on the screen. 
+
+Then I realize, that is becuz UICamera is only clearing the Depth. So I changed the UICamera
+Clear Flags to : Solid Color: Black
+
+
+UICamera
+	Clear Flags: Solid Color
+				 Black
+	Culling Mask: UI
+
+BattleView
+	UI (has a camera)
+	World 
+		Camera
+
+
+but then, when I go into battle, I do not see the battleView at all. That is when I realize that 
+the UI layer is rendered afterwards ontop of the default layer. So when You set the clear flag
+on your UICamera to solid Color, it will wipe out everything that was already rendered on the default layer. Therefore the UICamera should only ever have the depth clear flag on.
+
+
+So the solution is create an extra scene camera on the default layer
+
+
+
+UICamera
+	Clear Flags: Depth Only
+	Culling Mask: UI
+
+SceneCamera
+	Clear Flags: Solid Color
+	Culling Mask: default
+
+BattleView
+	UI (has a camera)
+	World
+		Camera
+
+
+
+
+
+
+
+SceneCamera
+
 Again, this should be a common thing if u do openGL stuff often... 
 
 

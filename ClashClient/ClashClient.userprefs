@@ -1,23 +1,22 @@
-﻿<Properties StartupItem="Assembly-CSharp.csproj">
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/ClientDebugPanel.cs">
+﻿<Properties>
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Main.cs">
     <Files>
       <File FileName="Assets/Main.cs" Line="1" Column="1" />
-      <File FileName="Assets/Shared/BattleStartingInfo.cs" Line="1" Column="1" />
-      <File FileName="Assets/Shared/Globals.cs" Line="1" Column="1" />
-      <File FileName="Assets/Shared/Net/NetGameConnection.cs" Line="1" Column="1" />
-      <File FileName="../../imperial_netcode/Client/Assets/Shared/GameClient.cs" Line="1" Column="1" />
-      <File FileName="../../imperial_netcode/Client/Assets/Shared/Util.cs" Line="1" Column="1" />
-      <File FileName="Assets/Shared/Util.cs" Line="1" Column="1" />
-      <File FileName="../../imperial_netcode/Client/Assets/Shared/Net/NetGameConnection.cs" Line="1" Column="1" />
-      <File FileName="Assets/ClientDebugPanel.cs" Line="14" Column="1" />
+      <File FileName="../../imperial_netcode/Server/Source/Server.cs" Line="1560" Column="11" />
+      <File FileName="../ClashServer/Shared/Net/NetGameConnection.cs" Line="359" Column="1" />
+      <File FileName="../ClashServer/Shared/Message.cs" Line="135" Column="47" />
+      <File FileName="../../imperial_netcode/Server/Source/Shared/Message.cs" Line="978" Column="32" />
+      <File FileName="../ClashServer/ServerSimulation.cs" Line="42" Column="30" />
+      <File FileName="../../imperial_netcode/Server/Source/ServerSimulation.cs" Line="733" Column="6" />
+      <File FileName="../ClashServer/Shared/Util.cs" Line="1" Column="1" />
+      <File FileName="../../imperial_netcode/Server/Source/Shared/Util.cs" Line="658" Column="27" />
+      <File FileName="Assets/BattleScreenController.cs" Line="1" Column="1" />
+      <File FileName="Assets/ClientDebugPanel.cs" Line="1" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/Users/mliu/Desktop/imperial/Client/Assets/Shared/Net/NetGameConnection.cs" line="1354" column="5" />
-      <Breakpoint file="/Users/mliu/Desktop/martin_clash/ClashClient/Assets/Shared/Net/NetSerializer.cs" line="203" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
 </Properties>
