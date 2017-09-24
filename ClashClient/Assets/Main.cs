@@ -48,6 +48,7 @@ public class Main : MonoBehaviour
 	void Start () 
     {
         instance = this;
+        clientDebugPanel = new ClientDebugPanel();
 
         Config.Init();
 
@@ -135,7 +136,7 @@ public class Main : MonoBehaviour
     {
         if (clientDebugPanel != null)
         {
-
+            clientDebugPanel.Render();
         }
 
     }

@@ -81,6 +81,7 @@
      <Compile Include="Assets\Shared\RateSmoother.cs" />
      <Compile Include="Assets\Shared\ServerFrameInfo.cs" />
      <Compile Include="Assets\Shared\Simulation.cs" />
+     <Compile Include="Assets\Shared\SmoothingWindowAnalyzer.cs" />
      <Compile Include="Assets\Shared\TowerHelper.cs" />
      <Compile Include="Assets\Shared\TroopHelper.cs" />
      <Compile Include="Assets\Shared\Util.cs" />

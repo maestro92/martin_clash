@@ -404,3 +404,33 @@ I have made the small change where I changed the the serverFrameInfoList from si
 
 only the client should be aware of the serverFrameInfoList, which is why I made this move
 
+
+
+
+##################################################################################
+##################################### 2017/09/23 #################################
+##################################################################################
+
+Another that I found out about Unity Cameras.
+
+Well, it's more of a OpenGL type thing. if you don't clear the proper flags on your camera
+things drawn on the previous frame will persist. So make sure you clear the righr flags.
+
+Again, this should be a common thing if u do openGL stuff often... 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
