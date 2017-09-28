@@ -23,9 +23,18 @@ public class GameClient
     private Queue<Message> m_simMessageQueue;
     private ClientSimulation clientSim;
 
+    public RateSmoother rateSmoother;
+    public FrameBufferAnalyzer frameBufferAnalyzer;
+
     public GameClient()
     {
         m_simMessageQueue = new Queue<Message>();
+
+        rateSmoother = new RateSmoother();
+        rateSmoother.Init();
+
+        frameBufferAnalyzer = new FrameBufferAnalyzer();
+        frameBufferAnalyzer.Init();
     }
 
 
@@ -64,11 +73,23 @@ public class GameClient
 
         if (clientSim != null)
         {
-      //      Util.LogError("m_simMessageQueue.Count " + m_simMessageQueue.Count.ToString());
-            while (m_simMessageQueue.Count > 0 && m_simMessageQueue.Peek().frameCount == clientSim.simulation.curFrameCount)
-            {
-        //        Util.LogError("m_simMessageQueue.Peek().frameCount " + m_simMessageQueue.Peek().frameCount.ToString());
+            frameBufferAnalyzer.Pump();
+            rateSmoother.UpdateFrameToBufferAhead(frameBufferAnalyzer.GetComputedNumFrameToBuffer());
+            Tick();
+        }
+    }
 
+
+
+
+    public void Tick()
+    {
+        rateSmoother.StartLoop();
+
+        while (rateSmoother.ConsumeFrame())
+        {
+            while (m_simMessageQueue.Count > 0 && m_simMessageQueue.Peek().frameCount == clientSim.simulation.curFrameCount)
+            {        
                 Message msg = m_simMessageQueue.Dequeue();
 
                 if (msg.type == Message.Type.CastCard)
@@ -77,15 +98,13 @@ public class GameClient
                     clientSim.simulation.CastCard(msg.cardType, msg.teamId, msg.simPosition);
                 }
             }
-
-
-
+                
             clientSim.Tick();
         }
     }
 
-
-
+    // make a register function 
+    // see RegisterTerminalCommand 
     public void OnHandledMessage(NetGameConnection connection, Message message)
     {
         if (message.type == Message.Type.None)
@@ -132,7 +151,10 @@ public class GameClient
                 Util.LogError("clientSim ? " + (clientSim == null));
                 Util.LogError("clientSim.serverFrameInfoList ? " + (clientSim.serverFrameInfoList == null));
                 */
+
                 clientSim.serverFrameInfoList.Add(message.serverFrameInfo);
+                rateSmoother.AddNewFrame(message.frameCount);
+                frameBufferAnalyzer.SetFrameHead(message.frameCount);
                 break;
 
             case Message.Type.CastCard:

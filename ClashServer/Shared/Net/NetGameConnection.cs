@@ -40,7 +40,7 @@ public class NetGameConnection
 	public bool receiveInFlightFlag = false;
     public bool clientConnectToServerInFlightFlag = false;
     public double clientConnectToServerStartTime;
-    public bool socketConnected = false;
+    private bool m_socketConnected = false;
 
 
 //	private string m_curStringPayload;
@@ -263,6 +263,7 @@ public class NetGameConnection
             clientConnectToServerInFlightFlag = flag;
         }
     }
+
 
 
 
@@ -659,9 +660,17 @@ public class NetGameConnection
     }
 
 
+    public bool IsConnected()
+    {
+        return m_socketConnected;
+    }
+
+
     private void OnClientSocketConnected()
     {
         Util.LogError("SetConnectionState(NetGameConnectionState.Connected)");;
+
+        m_socketConnected = true;
 
         SetConnectionState(NetGameConnectionState.Connected);
         // myself

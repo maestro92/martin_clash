@@ -29,6 +29,13 @@ public class ClientSimulation
 
     }
 
+
+    public void AddNewServerFrame(ServerFrameInfo serverFrameInfo)                
+    {
+        serverFrameInfoList.Add(serverFrameInfo);        
+    }
+
+
     public bool Tick()
     {
 //        Debug.LogError("serverFrameInfoList Count " + serverFrameInfoList.Count.ToString());

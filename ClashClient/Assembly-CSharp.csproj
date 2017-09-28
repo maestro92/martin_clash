@@ -66,6 +66,7 @@
      <Compile Include="Assets\Shared\Card.cs" />
      <Compile Include="Assets\Shared\Config\Config.cs" />
      <Compile Include="Assets\Shared\Entity.cs" />
+     <Compile Include="Assets\Shared\FrameBufferAnalyzer.cs" />
      <Compile Include="Assets\Shared\Globals.cs" />
      <Compile Include="Assets\Shared\GridCell.cs" />
      <Compile Include="Assets\Shared\Map.cs" />
@@ -73,6 +74,7 @@
      <Compile Include="Assets\Shared\Net\NetAddress.cs" />
      <Compile Include="Assets\Shared\Net\NetBuffer.cs" />
      <Compile Include="Assets\Shared\Net\NetGameConnection.cs" />
+     <Compile Include="Assets\Shared\Net\NetMeterManager.cs" />
      <Compile Include="Assets\Shared\Net\NetSerializer.cs" />
      <Compile Include="Assets\Shared\Net\NetUtil.cs" />
      <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
@@ -81,7 +83,6 @@
      <Compile Include="Assets\Shared\RateSmoother.cs" />
      <Compile Include="Assets\Shared\ServerFrameInfo.cs" />
      <Compile Include="Assets\Shared\Simulation.cs" />
-     <Compile Include="Assets\Shared\SmoothingWindowAnalyzer.cs" />
      <Compile Include="Assets\Shared\TowerHelper.cs" />
      <Compile Include="Assets\Shared\TroopHelper.cs" />
      <Compile Include="Assets\Shared\Util.cs" />

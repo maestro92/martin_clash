@@ -103,8 +103,6 @@ public class Server
 	}
 
 	// set up the IP address and port, then start accepting commands
-
-
 	public void startHosting(string hostIPAddress, int port)
 	{
 		m_isRunning = true;

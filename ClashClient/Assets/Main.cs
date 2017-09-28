@@ -38,6 +38,7 @@ public class Main : MonoBehaviour
 
 
     public NetworkManager networkManager;
+    public static readonly NetMeterManager netMeterManager = new NetMeterManager();
 
     public int TARGET_FRAME_RATE = 60;
 
@@ -49,6 +50,8 @@ public class Main : MonoBehaviour
     {
         instance = this;
         clientDebugPanel = new ClientDebugPanel();
+
+        netMeterManager.Init();
 
         Config.Init();
 
