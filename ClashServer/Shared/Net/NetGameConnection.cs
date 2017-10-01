@@ -23,6 +23,12 @@ public enum NetGameConnectionState
 //      
 // so we'll use an extra bool to do it
 
+public enum NetGameConnectionSide
+{
+    None, 
+    ServerSide,
+    ClientSide,
+}
 
 
 public class NetGameConnection
@@ -67,7 +73,12 @@ public class NetGameConnection
     public double ClientConnectTimeOut_ms;
 
 	public Action<NetGameConnection, Message> OnHandleMessage;
-	public NetGameConnection()
+	
+    private Socket                  m_rawTcpSocket = null;
+    private NetGameConnectionState m_connectionState = NetGameConnectionState.None;
+    private NetGameConnectionSide m_connectionSide = NetGameConnectionSide.None;
+
+    public NetGameConnection()
     {
 		//        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
         sendInFlightFlag = false;
@@ -93,11 +104,25 @@ public class NetGameConnection
 		m_curMsgDataReadBuffer = null;
 
         ClientConnectTimeOut_ms = 5000;
+        m_connectionState = NetGameConnectionState.None;
+        m_connectionSide = NetGameConnectionSide.None;
 	}
 
-    private Socket                  m_rawTcpSocket = null;
-    private NetGameConnectionState m_connectionState = NetGameConnectionState.None;
 
+    public bool IsClientSide()
+    {
+        return m_connectionSide == NetGameConnectionSide.ClientSide;
+    }
+
+    public bool IsServerSide()
+    {
+        return m_connectionSide == NetGameConnectionSide.ServerSide;
+    }
+
+    public void SetConnectionSide(NetGameConnectionSide side)
+    {
+        m_connectionSide = side;
+    }
 
     public void SetConnectionState(NetGameConnectionState state)
     {
@@ -370,9 +395,28 @@ public class NetGameConnection
 		try
 		{
 			// Complete sending the data to the remote device
-			int byteSent = m_rawTcpSocket.EndSend(ar);
+            int numByteSent = m_rawTcpSocket.EndSend(ar);
 		//	Util.Log("Sent " + byteSent.ToString() + " to client");
 			endSendSuccess = true;
+
+            if( ( NetGlobal.netMeter != null ) && ( NetGlobal.netMeter.IsEnabled() == true ) )
+            {
+                lock(NetGlobal.netMeter)
+                {
+                    if(IsClientSide())
+                    {
+                        NetGlobal.netMeter.Record(NetMeter.EntryFlag.Client | 
+                                                        NetMeter.EntryFlag.Send | 
+                                                        NetMeter.EntryFlag.Tcp, numByteSent);
+                    }
+                    else if (IsServerSide())
+                    {
+                        NetGlobal.netMeter.Record(NetMeter.EntryFlag.Server | 
+                                                        NetMeter.EntryFlag.Send | 
+                                                        NetMeter.EntryFlag.Tcp, numByteSent);
+                    }
+                }
+            }
 		}
 		catch (System.Net.Sockets.SocketException socketExceptionIn)
 		{
@@ -451,6 +495,21 @@ public class NetGameConnection
 		{
             if (numBytesReceived > 0)
             {
+                if( NetGlobal.netMeter != null && NetGlobal.netMeter.IsEnabled() == true )
+                {
+                    lock( NetGlobal.netMeter )
+                    {
+                        if( IsClientSide() )
+                        {
+                            NetGlobal.netMeter.Record( NetMeter.EntryFlag.Client | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived );
+                        }
+                        else if( IsServerSide() )
+                        {
+                            NetGlobal.netMeter.Record( NetMeter.EntryFlag.Server | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived );
+                        }
+                    }
+                }
+
                 int i = 0;
                 while (i < numBytesReceived)
                 {
@@ -673,6 +732,7 @@ public class NetGameConnection
         m_socketConnected = true;
 
         SetConnectionState(NetGameConnectionState.Connected);
+        SetConnectionSide(NetGameConnectionSide.ClientSide);
         // myself
         IPEndPoint localIpEndPoint = (IPEndPoint)(m_rawTcpSocket.LocalEndPoint);
         string localAddressAndPortString = localIpEndPoint.Address.ToString() + ":" + localIpEndPoint.Port.ToString();
@@ -697,7 +757,7 @@ public class NetGameConnection
     public void OnServerSocketConnected()
 	{
 		SetConnectionState(NetGameConnectionState.Connected);
-
+		SetConnectionSide(NetGameConnectionSide.ServerSide);
 	}
 	/*
 		public void AsyncClientConnectToHost(string ipAddress, int port)

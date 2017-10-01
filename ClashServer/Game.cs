@@ -21,6 +21,8 @@ public class Game
 				Console.WriteLine("ERROR: " + s);
 			};
 
+		NetGlobal.netMeter.Init();
+
 		// server start hosting
 		Server server = new Server();
 

@@ -55,6 +55,8 @@
     <Compile Include="Shared\Card.cs" />
     <Compile Include="Shared\RateRegulator.cs" />
     <Compile Include="Shared\RateSmoother.cs" />
+    <Compile Include="Shared\Net\NetGlobal.cs" />
+    <Compile Include="Shared\Net\NetMeter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Shared\Net\" />
@@ -80,6 +82,8 @@
     <None Include="Shared\Card.cs.meta" />
     <None Include="Shared\RateRegulator.cs.meta" />
     <None Include="Shared\RateSmoother.cs.meta" />
+    <None Include="Shared\Net\NetGlobal.cs.meta" />
+    <None Include="Shared\Net\NetMeter.cs.meta" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -163,7 +163,7 @@ public class ClientDebugPanel
         float meterX = panelWidth - 2 * gx;
         float meterY = 150;
 
-        RenderNetMeterPanel(0, y, meterX, meterY, panelColor);
+        RenderNetMeterPanel(NetGlobal.netMeter, 0, y, meterX, meterY, panelColor);
         x = 0;
         y += (meterY + gy + gy);
 
@@ -298,13 +298,20 @@ public class ClientDebugPanel
     }
 
 
-    private void RenderNetMeterPanel(float xIn, float yIn, float wIn, float hIn, Color color)
+    private void RenderNetMeterPanel(NetMeter netMeterIn, float xIn, float yIn, float wIn, float hIn, Color color)
     {
         AddPanel(xIn, yIn, wIn, hIn, color);
-        Main.netMeterManager.Pump();
 
-        RenderMeter(Main.netMeterManager, new Rect(xIn, yIn, wIn, hIn));
+        netMeterIn.Pump();
 
+        float gy = 6.0f;
+        float h = hIn / 2 - gy;
+                    
+        float y1 = yIn;
+        float y2 = yIn + h + gy;
+
+        RenderMeter(netMeterIn, NetMeter.EntryFlag.Send, new Rect(xIn, y1, wIn, h));
+        RenderMeter(netMeterIn, NetMeter.EntryFlag.Receive, new Rect(xIn, y2, wIn, h));
 
 
     }
@@ -317,41 +324,39 @@ public class ClientDebugPanel
     // then we quantize it up to the nearest factor of 1000, which is the nearest "sec" mark
 
     // so if your starting time was 1232, we quantize it up, this beocomes 2000
-    private void RenderMeterSecMarkers(NetMeterManager netMeterManagerIn, 
+    private void RenderMeterSecMarkers(NetMeter netMeterManagerIn, 
                                         Int64 msTimeStart, Int64 msTimeEnd, Int64 msTimeSpan, Rect panelRect)
     {
-
-        Int64 timeStampSecMarker = msTimeStart;
-
-
-        Debug.LogError("RenderMeterSecMarkers " );
-        Debug.LogError("\tmsTimeStart " + msTimeStart );
-        Debug.LogError("\tmsTimeEnd " + msTimeEnd );
-
+        Int64 timeStampSecMarker = msTimeStart;       
 
         // we find the nearest (larger or equal) 1 sec mark 
         timeStampSecMarker = NetUtil.QuantizeUpToNearestMS(timeStampSecMarker, 1000);
-
-        Debug.LogError("\ttimeStampSecMarker " + timeStampSecMarker );
 
         GUI.skin.box.normal.background = m_netMeterTexture2DSecondBorderMarker;
 
         while (timeStampSecMarker < msTimeEnd)
         {
             float xPercent = (timeStampSecMarker - msTimeStart) / (float)msTimeSpan;
-            Debug.LogError("\txPercent " + xPercent );
-            Debug.LogError("\tmsTimeSpan " + msTimeSpan );
-
             float xStart = panelRect.x + panelRect.width * xPercent;
-            GUI.Box( new UnityEngine.Rect( xStart, panelRect.y, 1, panelRect.height ), GUIContent.none );
+            GUI.Box( new Rect( xStart, panelRect.y, 1, panelRect.height ), GUIContent.none );
 
             timeStampSecMarker += 1000;
-        }
-
-
+        }            
     }
 
-    private void RenderMeter(NetMeterManager netMeterManagerIn, Rect panelRect)
+    private void RenderKBytesPerSecLabel(float numKBytesThisSec, Rect panelRect)
+    {
+        GUIStyle guiStyleFont = GUI.skin.label;
+        float w = 50;
+        Rect rect = new Rect();
+        rect.x = panelRect.x + panelRect.width - 50;
+        rect.y = panelRect.y + 5;
+        rect.width = w;
+        rect.height = 10;
+        GUI.Label(rect, numKBytesThisSec.ToString() + "/ kbps");
+    }
+
+    private void RenderMeter(NetMeter netMeterIn, NetMeter.EntryFlag entryFlagIn, Rect panelRect)
     {
         // draw the background
         if (Main.instance.mainGameClient.connection.IsConnected() == true)
@@ -373,16 +378,64 @@ public class ClientDebugPanel
         GUI.skin.box.border.right = 0;
 
         Int64 msTimeEnd = Util.GetRealTimeMS();
-        Int64 msTimeStart = msTimeEnd - netMeterManagerIn.GetCaptureWindowSizeMS();
-        Int64 msTimeSpan = netMeterManagerIn.GetCaptureWindowSizeMS();
+        Int64 msTimeStart = msTimeEnd - netMeterIn.GetCaptureWindowSizeMS();
+        Int64 msTimeSpan = netMeterIn.GetCaptureWindowSizeMS();
         // BPS: bytes per/sec. We will record the bytes persecond here
         // so we set the start time 1000 ms (which is 1 sec) before the msTimeEnd
         Int64 msTimeBPStart = msTimeEnd - 1000;
 
-        RenderMeterSecMarkers(netMeterManagerIn, msTimeStart, msTimeEnd, msTimeSpan, panelRect);
+        RenderMeterSecMarkers(netMeterIn, msTimeStart, msTimeEnd, msTimeSpan, panelRect);
+
+        float numKBytesThisSec = 0.0f;
+
+        if (netMeterIn.EntryList.Count > 0)
+        {
+            float maxY = netMeterIn.GetNumVerticalBytesInMeter();
+
+            foreach (var entry in netMeterIn.EntryList)
+            {
+                if ((entry.GetEntryFlag() & entryFlagIn) == entryFlagIn)
+                {
+                    Int64 timeStamp = entry.GetTimeStamp();
+                    if (msTimeStart <= timeStamp && timeStamp <= msTimeEnd)
+                    {
+                        // start rendering
+                        float xPercent = (timeStamp - msTimeStart) / (float)msTimeSpan;
+                        float dataX = panelRect.x + panelRect.width * xPercent;
+
+                        float dataW = (netMeterIn.GetQuantizeToNearestMS() / (float)msTimeSpan) * panelRect.width;
+
+                        float hPercent = entry.GetNumBytes() / maxY;
+                        float dataH = panelRect.height * hPercent;
+                        float dataY = panelRect.y + panelRect.height - dataH;
+
+                        if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Client))
+                        {
+                            GUI.skin.box.normal.background = m_netMeterTexture2DClientData;
+                        }
+                        else if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Server))
+                        {
+                            GUI.skin.box.normal.background = m_netMeterTexture2DServerData;
+                        }
+
+                        Rect newRect = new Rect( dataX, dataY, dataW, dataH );
+                        GUI.Box( newRect, GUIContent.none );
+
+                        if ((msTimeEnd - 1000) <= timeStamp && timeStamp <= msTimeEnd) // within the last second
+                        {
+                            numKBytesThisSec += entry.GetNumBytes();
+                        }
+                    }
 
 
 
+
+
+                }
+            }
+        }
+
+        RenderKBytesPerSecLabel(numKBytesThisSec, panelRect);
     }
 
 

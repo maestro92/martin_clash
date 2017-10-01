@@ -130,6 +130,7 @@ public class RateSmoother
 
     public bool ConsumeFrame()
     {
+        Util.LogError("Consuming Frames");
         if (m_numFramesAvailableToConsumeThisTick <= 0)
         {
             return false;

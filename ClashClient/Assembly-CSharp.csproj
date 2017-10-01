@@ -74,7 +74,8 @@
      <Compile Include="Assets\Shared\Net\NetAddress.cs" />
      <Compile Include="Assets\Shared\Net\NetBuffer.cs" />
      <Compile Include="Assets\Shared\Net\NetGameConnection.cs" />
-     <Compile Include="Assets\Shared\Net\NetMeterManager.cs" />
+     <Compile Include="Assets\Shared\Net\NetGlobal.cs" />
+     <Compile Include="Assets\Shared\Net\NetMeter.cs" />
      <Compile Include="Assets\Shared\Net\NetSerializer.cs" />
      <Compile Include="Assets\Shared\Net\NetUtil.cs" />
      <Compile Include="Assets\Shared\Net\NetworkManager.cs" />

@@ -38,7 +38,7 @@ public class Main : MonoBehaviour
 
 
     public NetworkManager networkManager;
-    public static readonly NetMeterManager netMeterManager = new NetMeterManager();
+//    public static readonly NetMeter netMeterManager = new NetMeter();
 
     public int TARGET_FRAME_RATE = 60;
 
@@ -51,7 +51,7 @@ public class Main : MonoBehaviour
         instance = this;
         clientDebugPanel = new ClientDebugPanel();
 
-        netMeterManager.Init();
+  //      netMeterManager.Init();
 
         Config.Init();
 
@@ -78,6 +78,9 @@ public class Main : MonoBehaviour
         networkManager = new NetworkManager();
 
         networkManager.GetServerIPAddress();
+
+        NetGlobal.netMeter.Init();
+        NetGlobal.netMeter.Enable(true);
 
         ui = new UIManager();
         ui.Init();

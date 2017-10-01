@@ -86,7 +86,7 @@ public class GameClient
     {
         rateSmoother.StartLoop();
 
-        while (rateSmoother.ConsumeFrame())
+    //    while (rateSmoother.ConsumeFrame())
         {
             while (m_simMessageQueue.Count > 0 && m_simMessageQueue.Peek().frameCount == clientSim.simulation.curFrameCount)
             {        
@@ -143,17 +143,17 @@ public class GameClient
                 break;
 
             case Message.Type.EndFrame:
-                /*
-                Util.LogError("EndFrame");
-           //     message.serverFrameInfo.Print();
-                Util.LogError("is serverFrameInfo null ? " + (message.serverFrameInfo == null));
-                Util.LogError("userId " + userId.ToString());
-                Util.LogError("clientSim ? " + (clientSim == null));
-                Util.LogError("clientSim.serverFrameInfoList ? " + (clientSim.serverFrameInfoList == null));
-                */
-
+                
+//                Util.LogError("EndFrame");
+//           //     message.serverFrameInfo.Print();
+//                Util.LogError("is serverFrameInfo null ? " + (message.serverFrameInfo == null));
+//                Util.LogError("userId " + userId.ToString());
+//                Util.LogError("clientSim ? " + (clientSim == null));
+//                Util.LogError("clientSim.serverFrameInfoList ? " + (clientSim.serverFrameInfoList == null));
+//
+//
                 clientSim.serverFrameInfoList.Add(message.serverFrameInfo);
-                rateSmoother.AddNewFrame(message.frameCount);
+                rateSmoother.AddNewFrame(message.serverFrameInfo.frameCount);
                 frameBufferAnalyzer.SetFrameHead(message.frameCount);
                 break;
 
