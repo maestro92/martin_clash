@@ -219,20 +219,15 @@ public class NetMeter
 
         if ( (netMeterEntryFlagsIn & NetMeter.EntryFlag.Server) == NetMeter.EntryFlag.Server)
         {
-            // Util.LogError("Recording2");
             if(!IsCaptureFlagSet(CaptureFlag.Server))
-            {
-            //    Util.LogError("Recording3");
-
+            {         
                 return;
             }
         }
         else if ( (netMeterEntryFlagsIn & NetMeter.EntryFlag.Client) == NetMeter.EntryFlag.Client)
         {
-            // Util.LogError("Recording4");
             if(!IsCaptureFlagSet(CaptureFlag.Client) )
             {
-            //    Util.LogError("Recording5");
                 return;
             }
         }

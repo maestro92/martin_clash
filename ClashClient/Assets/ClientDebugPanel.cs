@@ -163,7 +163,10 @@ public class ClientDebugPanel
         float meterX = panelWidth - 2 * gx;
         float meterY = 150;
 
-        RenderNetMeterPanel(NetGlobal.netMeter, 0, y, meterX, meterY, panelColor);
+        if (NetGlobal.netMeter != null && NetGlobal.netMeter.IsEnabled())
+        {
+            RenderNetMeterPanel(NetGlobal.netMeter, 0, y, meterX, meterY, panelColor);
+        }
         x = 0;
         y += (meterY + gy + gy);
 
@@ -310,8 +313,15 @@ public class ClientDebugPanel
         float y1 = yIn;
         float y2 = yIn + h + gy;
 
-        RenderMeter(netMeterIn, NetMeter.EntryFlag.Send, new Rect(xIn, y1, wIn, h));
-        RenderMeter(netMeterIn, NetMeter.EntryFlag.Receive, new Rect(xIn, y2, wIn, h));
+        GUIStyle guiStyleFont = new GUIStyle( GUI.skin.label );
+        guiStyleFont.fontSize = (int) ( 48 * 0.5f );
+
+        string sendLabel = "Send";
+        string receiveLabel = "Receive";
+
+
+        RenderMeter(netMeterIn, sendLabel, NetMeter.EntryFlag.Send, new Rect(xIn, y1, wIn, h), guiStyleFont);
+        RenderMeter(netMeterIn, receiveLabel, NetMeter.EntryFlag.Receive, new Rect(xIn, y2, wIn, h), guiStyleFont);
 
 
     }
@@ -344,19 +354,53 @@ public class ClientDebugPanel
         }            
     }
 
-    private void RenderKBytesPerSecLabel(float numKBytesThisSec, Rect panelRect)
+    // we render the header and numKBytesThisSec Label
+    private void RenderNetMeterLabels(string labelIn, float numBytesThisSec, Rect panelRect, GUIStyle guiStyleFontIn)
     {
-        GUIStyle guiStyleFont = GUI.skin.label;
-        float w = 50;
+        float kPerSec = ( numBytesThisSec / 1024 );
+
+        Color labelTextColor;
+        // rendering the label
+
+        float w = 150;
+        float h = 50;
         Rect rect = new Rect();
-        rect.x = panelRect.x + panelRect.width - 50;
-        rect.y = panelRect.y + 5;
+        rect.x = panelRect.x + 10;
+        rect.y = panelRect.y;
         rect.width = w;
-        rect.height = 10;
-        GUI.Label(rect, numKBytesThisSec.ToString() + "/ kbps");
+        rect.height = h;
+
+        // draw bps
+        if( kPerSec > 10.0f )       // more than 10K/sec, yikes!
+        {
+            labelTextColor = UnityEngine.Color.red;
+        }
+        else if( kPerSec > 5.0f )   // more than 5K/sec, might be dicey
+        {
+            labelTextColor = UnityEngine.Color.yellow;
+        }
+        else                        // < 5K/sec, nice!
+        {
+            labelTextColor = UnityEngine.Color.white;
+        }
+
+        string kbps = string.Format( "{0:F2} K/s", kPerSec );
+
+        GUI.contentColor = labelTextColor;
+        GUI.Label( rect, labelIn );
+
+
+        // rendering the kbps
+        rect.x = panelRect.x + panelRect.width - w;
+        rect.y = panelRect.y;
+        rect.width = w;
+        rect.height = h;
+
+        GUI.contentColor = labelTextColor;
+        GUI.Label(rect, kbps + "/ kbps");
     }
 
-    private void RenderMeter(NetMeter netMeterIn, NetMeter.EntryFlag entryFlagIn, Rect panelRect)
+    private void RenderMeter(NetMeter netMeterIn, string labelIn, NetMeter.EntryFlag entryFlagIn, Rect panelRect, GUIStyle guiStyleFontIn)
     {
         // draw the background
         if (Main.instance.mainGameClient.connection.IsConnected() == true)
@@ -386,7 +430,7 @@ public class ClientDebugPanel
 
         RenderMeterSecMarkers(netMeterIn, msTimeStart, msTimeEnd, msTimeSpan, panelRect);
 
-        float numKBytesThisSec = 0.0f;
+        float numBytesThisSec = 0.0f;
 
         if (netMeterIn.EntryList.Count > 0)
         {
@@ -399,6 +443,7 @@ public class ClientDebugPanel
                     Int64 timeStamp = entry.GetTimeStamp();
                     if (msTimeStart <= timeStamp && timeStamp <= msTimeEnd)
                     {
+                        bool exceededYMax = false;
                         // start rendering
                         float xPercent = (timeStamp - msTimeStart) / (float)msTimeSpan;
                         float dataX = panelRect.x + panelRect.width * xPercent;
@@ -406,10 +451,21 @@ public class ClientDebugPanel
                         float dataW = (netMeterIn.GetQuantizeToNearestMS() / (float)msTimeSpan) * panelRect.width;
 
                         float hPercent = entry.GetNumBytes() / maxY;
+
+                        if (hPercent > 1.0f)
+                        {
+                            hPercent = 1.0f;
+                            exceededYMax = true;
+                        }
+
                         float dataH = panelRect.height * hPercent;
                         float dataY = panelRect.y + panelRect.height - dataH;
 
-                        if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Client))
+                        if (exceededYMax == true)
+                        {
+                            GUI.skin.box.normal.background = m_netMeterTexture2DClippedData;
+                        }
+                        else if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Client))
                         {
                             GUI.skin.box.normal.background = m_netMeterTexture2DClientData;
                         }
@@ -423,19 +479,14 @@ public class ClientDebugPanel
 
                         if ((msTimeEnd - 1000) <= timeStamp && timeStamp <= msTimeEnd) // within the last second
                         {
-                            numKBytesThisSec += entry.GetNumBytes();
+                            numBytesThisSec += entry.GetNumBytes();
                         }
                     }
-
-
-
-
-
                 }
             }
         }
 
-        RenderKBytesPerSecLabel(numKBytesThisSec, panelRect);
+        RenderNetMeterLabels(labelIn, numBytesThisSec, panelRect, guiStyleFontIn);
     }
 
 
