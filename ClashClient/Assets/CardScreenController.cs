@@ -6,7 +6,7 @@ public class CardScreenController : MonoBehaviour
 {
     public CardScreenController()
     {
-
+	// things to do
     }
 
     public void Init()
