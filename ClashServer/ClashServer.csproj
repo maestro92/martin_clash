@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -29,6 +29,9 @@
   <ItemGroup>
     <Compile Include="game.cs" />
     <Compile Include="Server.cs" />
+    <Compile Include="Shared\Net\HeatbeatHelper.cs" />
+    <Compile Include="Shared\Net\NetGameConnectionConfig.cs" />
+    <Compile Include="Shared\Net\PingHelper.cs" />
     <Compile Include="Shared\Simulation.cs" />
     <Compile Include="Shared\Net\NetworkManager.cs" />
     <Compile Include="Shared\Globals.cs" />
@@ -58,9 +61,7 @@
     <Compile Include="Shared\Net\NetGlobal.cs" />
     <Compile Include="Shared\Net\NetMeter.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Shared\Net\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Reference Include="System.Net" />
     <Reference Include="System" />

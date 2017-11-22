@@ -22,7 +22,13 @@ public class Message : INetSerializer
 
         CastCard,
         EndFrame,
+
+        SysPing,
     };
+
+    public bool wantReply;
+    public int pingId;
+    public Int64 timeStampInMs;
 
     public Type type;
 	public int userId;
@@ -73,6 +79,15 @@ public class Message : INetSerializer
         message.isSimFrameSensitive = false;
 		return message;
 	}
+
+    public static Message SysPingMessage(int pingIdIn, Int64 timeStampInMsIn, bool wantReplyIn)
+    {
+        Message message = Message.GetOne(Type.SysPing);
+        message.pingId = pingIdIn;
+        message.timeStampInMs = timeStampInMsIn;
+        message.wantReply = wantReplyIn;
+        return message;     
+    }
 
 	public static Message SearchMatch()
 	{
@@ -183,6 +198,10 @@ public class Message : INetSerializer
                 writer.WriteOne<ServerFrameInfo>(serverFrameInfo, "ServerFrameInfo");
 				break;
 
+            case Message.Type.SysPing:
+                writer.WriteInt32(pingId, "pingId");
+                writer.WriteBool(wantReply, "wantReply");
+                break;
             default:   
                 Util.LogError("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
                 throw new Exception("Unsupported message type \"" + type.ToString() + "\"!!!");
@@ -249,6 +268,11 @@ public class Message : INetSerializer
                 serverFrameInfo = reader.ReadOne<ServerFrameInfo>(() => ServerFrameInfo.GetOne(), "serverFrameInfo"); 
 
                 break;
+            case Message.Type.SysPing:
+                pingId = reader.ReadInt32("pingId");
+                wantReply = reader.ReadBool("wantReply");
+                break;
+
             default:
                 Util.LogError("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
                 throw new Exception("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");

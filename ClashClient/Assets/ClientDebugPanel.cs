@@ -36,6 +36,8 @@ public class ClientDebugPanel
     public bool showLivePingFPSOverlay;
     public bool showMiniNetworkMeter;
 
+    private GameClient m_localGameClient;
+
     private UnityEngine.Texture2D m_hasInitNetMeterTextures;
     private UnityEngine.Texture2D m_netMeterTexture2DBackgroundDisconnected = null;
     private UnityEngine.Texture2D m_netMeterTexture2DBackgroundConnected = null;
@@ -64,9 +66,13 @@ public class ClientDebugPanel
         m_netMeterTexture2DClientData = PrivateCreateTexture2DColor( 2, 2, new Color(1.0f, 1.0f, 0.0f, 1.0f) );             // yellow
         m_netMeterTexture2DGreyData = PrivateCreateTexture2DColor( 2, 2, new Color(0.5f, 0.5f, 0.5f, 1.0f) );               // grey
         m_netMeterTexture2DClippedData = PrivateCreateTexture2DColor( 2, 2, new Color(1.0f, 0.0f, 0.0f, 1.0f) );            // red
-
     }
 
+
+    public void SetLocalGameClient(GameClient gameClientIn)
+    {
+        m_localGameClient = gameClientIn;
+    }
 
     private static Texture2D PrivateCreateTexture2DColor( int widthIn, int heightIn, Color color )
     {
@@ -180,7 +186,7 @@ public class ClientDebugPanel
                 if (clientDebugPanel != null)
                 {
                     // hiccup
-                    Debug.LogError("Implementing Hiccup");
+                    Debug.LogError("[NEED to Implement Hiccup]");
                 }
             }));
                 
@@ -190,7 +196,7 @@ public class ClientDebugPanel
         // row 2
         AddText( x, y, w, dy, Color.white, "Ping", TextAnchor.UpperLeft, 24 );
         x += panelWidth - w;
-        AddText(x, y, w, dy, Color.white, "[NEED to fill up Ping]");
+        AddText(x, y, w, dy, Color.white, m_localGameClient.connection.pingHelper.GetPing().ToString());
 
         x = 0;
         y += (dy + gy);
@@ -206,10 +212,12 @@ public class ClientDebugPanel
         y += (dy + gy);
 
 
-        // row 4
+
+
+        // row 6
         AddText( x, y, w, dy, Color.white, "Computed SW", TextAnchor.UpperLeft, 24 );
         x += panelWidth - w;
-        AddText(x, y, w, dy, Color.white, "[NEED to put Computed SW here]");
+        AddText(x, y, w, dy, Color.white, m_localGameClient.rateSmoother.GetNumFramesToBufferAhead().ToString());
 
         x = 0;
         y += (dy + gy);
@@ -220,14 +228,14 @@ public class ClientDebugPanel
         // row 6
         AddText( x, y, w, dy, Color.white, "Head", TextAnchor.UpperLeft, 24 );
         x += panelWidth - w;
-        AddText(x, y, w, dy, Color.white, "[NEED to put Frame Head here]");
+        AddText(x, y, w, dy, Color.white, m_localGameClient.rateSmoother.GetFrameHead().ToString());
         x = 0;
         y += (dy + gy);
 
         // row 7
         AddText( x, y, w, dy, Color.white, "Tail", TextAnchor.UpperLeft, 24 );
         x += panelWidth - w;
-        AddText(x, y, w, dy, Color.white, "[NEED to put Frame Tail here]");
+        AddText(x, y, w, dy, Color.white, m_localGameClient.rateSmoother.GetFrameTail().ToString());
         x = 0;
         y += (dy + gy);
 
@@ -235,12 +243,9 @@ public class ClientDebugPanel
         // row 8
         AddText( x, y, w, dy, Color.white, "Diff + ConsumerCounter", TextAnchor.UpperLeft, 24 );
         x += panelWidth - w;
-        AddText(x, y, w, dy, Color.white, "[NEED to put Diff + ConsumerCounter here]");
+        AddText(x, y, w, dy, Color.white, (m_localGameClient.rateSmoother.GetFrameDiff()).ToString() + " + " + m_localGameClient.rateSmoother.GetFrameConsumeCounter().ToString());
         x = 0;
         y += (dy + gy);
-
-
-
 
         AddSmoothingWindowAnalyserGraph( x, y, panelWidth - ( 2 * gx ), 90, null, 2000.0f, 500.0f );
     }
@@ -431,61 +436,67 @@ public class ClientDebugPanel
         RenderMeterSecMarkers(netMeterIn, msTimeStart, msTimeEnd, msTimeSpan, panelRect);
 
         float numBytesThisSec = 0.0f;
-
-        if (netMeterIn.EntryList.Count > 0)
+        lock (NetGlobal.netMeter)
         {
-            float maxY = netMeterIn.GetNumVerticalBytesInMeter();
-
-            foreach (var entry in netMeterIn.EntryList)
+            if (netMeterIn.EntryList.Count > 0)
             {
-                if ((entry.GetEntryFlag() & entryFlagIn) == entryFlagIn)
+                float maxY = netMeterIn.GetNumVerticalBytesInMeter();
+
+                //   Debug.LogError("netMeterIn.EntryList " + netMeterIn.EntryList.Count.ToString());
+                //   Debug.LogError("msTimeStart " + msTimeStart.ToString());
+                //   Debug.LogError("msTimeEnd " + msTimeEnd.ToString());
+            //    Debug.LogError(">>>> RenderMeter Start");
+                foreach (var entry in netMeterIn.EntryList)
                 {
-                    Int64 timeStamp = entry.GetTimeStamp();
-                    if (msTimeStart <= timeStamp && timeStamp <= msTimeEnd)
+                    if ((entry.GetEntryFlag() & entryFlagIn) == entryFlagIn)
                     {
-                        bool exceededYMax = false;
-                        // start rendering
-                        float xPercent = (timeStamp - msTimeStart) / (float)msTimeSpan;
-                        float dataX = panelRect.x + panelRect.width * xPercent;
-
-                        float dataW = (netMeterIn.GetQuantizeToNearestMS() / (float)msTimeSpan) * panelRect.width;
-
-                        float hPercent = entry.GetNumBytes() / maxY;
-
-                        if (hPercent > 1.0f)
+                        Int64 timeStamp = entry.GetTimeStamp();
+                        if (msTimeStart <= timeStamp && timeStamp <= msTimeEnd)
                         {
-                            hPercent = 1.0f;
-                            exceededYMax = true;
-                        }
+                            bool exceededYMax = false;
+                            // start rendering
+                            float xPercent = (timeStamp - msTimeStart) / (float)msTimeSpan;
+                            float dataX = panelRect.x + panelRect.width * xPercent;
 
-                        float dataH = panelRect.height * hPercent;
-                        float dataY = panelRect.y + panelRect.height - dataH;
+                            float dataW = (netMeterIn.GetQuantizeToNearestMS() / (float)msTimeSpan) * panelRect.width;
 
-                        if (exceededYMax == true)
-                        {
-                            GUI.skin.box.normal.background = m_netMeterTexture2DClippedData;
-                        }
-                        else if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Client))
-                        {
-                            GUI.skin.box.normal.background = m_netMeterTexture2DClientData;
-                        }
-                        else if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Server))
-                        {
-                            GUI.skin.box.normal.background = m_netMeterTexture2DServerData;
-                        }
+                            float hPercent = entry.GetNumBytes() / maxY;
 
-                        Rect newRect = new Rect( dataX, dataY, dataW, dataH );
-                        GUI.Box( newRect, GUIContent.none );
+                            if (hPercent > 1.0f)
+                            {
+                                hPercent = 1.0f;
+                                exceededYMax = true;
+                            }
 
-                        if ((msTimeEnd - 1000) <= timeStamp && timeStamp <= msTimeEnd) // within the last second
-                        {
-                            numBytesThisSec += entry.GetNumBytes();
+                            float dataH = panelRect.height * hPercent;
+                            float dataY = panelRect.y + panelRect.height - dataH;
+
+                            if (exceededYMax == true)
+                            {
+                                GUI.skin.box.normal.background = m_netMeterTexture2DClippedData;
+                            }
+                            else if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Client))
+                            {
+                                GUI.skin.box.normal.background = m_netMeterTexture2DClientData;
+                            }
+                            else if (entry.IsEntryFlagSet(NetMeter.EntryFlag.Server))
+                            {
+                                GUI.skin.box.normal.background = m_netMeterTexture2DServerData;
+                            }
+
+                            Rect newRect = new Rect(dataX, dataY, dataW, dataH);
+                            GUI.Box(newRect, GUIContent.none);
+
+                            if ((msTimeEnd - 1000) <= timeStamp && timeStamp <= msTimeEnd) // within the last second
+                            {
+                                numBytesThisSec += entry.GetNumBytes();
+                            }
                         }
                     }
                 }
+            //    Debug.LogError(">>>> RenderMeter End");
             }
         }
-
         RenderNetMeterLabels(labelIn, numBytesThisSec, panelRect, guiStyleFontIn);
     }
 

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Text;
 using System.Collections;
 using System.Collections.Generic;
-
+// nicely done martin
 public enum NetGameConnectionState
 {
     None,
@@ -25,7 +25,7 @@ public enum NetGameConnectionState
 
 public enum NetGameConnectionSide
 {
-    None, 
+    None,
     ServerSide,
     ClientSide,
 }
@@ -33,80 +33,92 @@ public enum NetGameConnectionSide
 
 public class NetGameConnection
 {
-	// need a lock around sendList 
-	// just in case multiple threads are trying to call Message();
-	// no need one for receive, cuz we only receive in one place
-	public Object m_sendListLock;
-	public List<Message> m_sendMessageList;
+    // need a lock around sendList 
+    // just in case multiple threads are trying to call Message();
+    // no need one for receive, cuz we only receive in one place
+    public Object m_sendListLock;
+    public List<Message> m_sendMessageList;
 
-	public Object m_receiveMessageListLock;
-	public List<Message> m_receiveMessageList;
+    public Object m_receiveMessageListLock;
+    public List<Message> m_receiveMessageList;
 
-	public bool sendInFlightFlag = false;
-	public bool receiveInFlightFlag = false;
+    public bool sendInFlightFlag = false;
+    public bool receiveInFlightFlag = false;
     public bool clientConnectToServerInFlightFlag = false;
     public double clientConnectToServerStartTime;
     private bool m_socketConnected = false;
 
 
-//	private string m_curStringPayload;
-	public byte[] sendDataBuffer;
-//	public const int sendDataBufferSize = 2048;
+    //	private string m_curStringPayload;
+    public byte[] sendDataBuffer;
+    //	public const int sendDataBufferSize = 2048;
 
-	public byte[] receiveDataBuffer;
-	public const int receiveDataBufferSize = 256;
+    public byte[] receiveDataBuffer;
+    public const int receiveDataBufferSize = 256;
 
-	// all these variables are in bytes
-	private int m_curMsgSizeInfoIndex;
-	private byte[] m_curMsgSizeInfoReadBuffer;
-	private const int NUM_BYTES_FOR_HEADER_MESSAGE_SIZE = 4;
+    // all these variables are in bytes
+    private int m_curMsgSizeInfoIndex;
+    private byte[] m_curMsgSizeInfoReadBuffer;
+    private const int NUM_BYTES_FOR_HEADER_MESSAGE_SIZE = 4;
 
-	private int m_curMsgDataIndex;
-	private int m_curMsgDataSize;
-	private byte[] m_curMsgDataReadBuffer;  // or also the payload
+    private int m_curMsgDataIndex;
+    private int m_curMsgDataSize;
+    private byte[] m_curMsgDataReadBuffer;  // or also the payload
 
     public string serverIpAddress;
     public int serverPort;
 
-	private string m_connectionName;
+    private string m_connectionName;
 
     public double ClientConnectTimeOut_ms;
 
-	public Action<NetGameConnection, Message> OnHandleMessage;
-	
-    private Socket                  m_rawTcpSocket = null;
+    public Action<NetGameConnection, Message> OnHandleMessage;
+
+
+    private Socket m_rawTcpSocket = null;
     private NetGameConnectionState m_connectionState = NetGameConnectionState.None;
     private NetGameConnectionSide m_connectionSide = NetGameConnectionSide.None;
 
+    public NetGameConnectionConfig m_netGameConnectionConfig;
+
+    public PingHelper pingHelper;
+    public HeartbeatHelper heartbeatHelper;
+
     public NetGameConnection()
     {
-		//        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
+        //        SetConnectionState(NetGameConnectionState.DISCONNECTED); 
         sendInFlightFlag = false;
         receiveInFlightFlag = false;
         clientConnectToServerInFlightFlag = false;
 
-		m_sendListLock = new Object();
-		m_receiveMessageListLock = new Object();
+        m_sendListLock = new Object();
+        m_receiveMessageListLock = new Object();
 
         m_sendMessageList = new List<Message>();
-		m_receiveMessageList = new List<Message>();
+        m_receiveMessageList = new List<Message>();
 
-		m_connectionName = "";
+        m_connectionName = "";
 
-		sendDataBuffer = new byte[1];
-		receiveDataBuffer = new byte[receiveDataBufferSize];
+        sendDataBuffer = new byte[1];
+        receiveDataBuffer = new byte[receiveDataBufferSize];
 
-		m_curMsgSizeInfoIndex = 0;
-		m_curMsgSizeInfoReadBuffer = new byte[NUM_BYTES_FOR_HEADER_MESSAGE_SIZE];
+        m_curMsgSizeInfoIndex = 0;
+        m_curMsgSizeInfoReadBuffer = new byte[NUM_BYTES_FOR_HEADER_MESSAGE_SIZE];
 
-		m_curMsgDataIndex = 0;
-		m_curMsgDataSize = 0;
-		m_curMsgDataReadBuffer = null;
+        m_curMsgDataIndex = 0;
+        m_curMsgDataSize = 0;
+        m_curMsgDataReadBuffer = null;
 
         ClientConnectTimeOut_ms = 5000;
         m_connectionState = NetGameConnectionState.None;
         m_connectionSide = NetGameConnectionSide.None;
-	}
+
+        m_netGameConnectionConfig = new NetGameConnectionConfig();
+        pingHelper = new PingHelper();
+        heartbeatHelper = new HeartbeatHelper();
+
+
+    }
 
 
     public bool IsClientSide()
@@ -134,15 +146,15 @@ public class NetGameConnection
         return m_connectionState;
     }
 
-	public void SetConnectionName(string name)
-	{
-		m_connectionName = name;
-	}
+    public void SetConnectionName(string name)
+    {
+        m_connectionName = name;
+    }
 
-	public string GetConnectionName()
-	{
-		return m_connectionName;
-	}
+    public string GetConnectionName()
+    {
+        return m_connectionName;
+    }
     // receive queue
 
 
@@ -159,7 +171,7 @@ public class NetGameConnection
         https://stackoverflow.com/questions/5416190/socket-beginconnect-vs-socket-connect
 
         lets try Connect first
-    */ 
+    */
 
 
 
@@ -224,25 +236,25 @@ public class NetGameConnection
 
 
 
-	public void Shutdown()
-	{
+    public void Shutdown()
+    {
         SetConnectionState(NetGameConnectionState.Disconnected);
-		if (m_rawTcpSocket != null)
-		{
-			m_rawTcpSocket.Shutdown(SocketShutdown.Both);
-			m_rawTcpSocket.Close();
-		}
-	}
+        if (m_rawTcpSocket != null)
+        {
+            m_rawTcpSocket.Shutdown(SocketShutdown.Both);
+            m_rawTcpSocket.Close();
+        }
+    }
 
 
 
     public void SendMessage(Message message)
     {
-    //    Util.Log("\t>>> calling SendMessage " + message.type.ToString());
-		lock (m_sendListLock)
-		{
-			m_sendMessageList.Add(message);
-		}
+        //    Util.Log("\t>>> calling SendMessage " + message.type.ToString());
+        lock (m_sendListLock)
+        {
+            m_sendMessageList.Add(message);
+        }
     }
 
 
@@ -250,32 +262,32 @@ public class NetGameConnection
 
 
 
-	public void SetSendInFlightFlag(bool flag, string whereIn)
-	{
-		if (sendInFlightFlag == flag)
-		{
-			
-		}
-		else
-		{
-			sendInFlightFlag = flag;
-		//	Util.Log("Calling SetSendInFlightFlag from " + whereIn);
-		}
-	}
+    public void SetSendInFlightFlag(bool flag, string whereIn)
+    {
+        if (sendInFlightFlag == flag)
+        {
+
+        }
+        else
+        {
+            sendInFlightFlag = flag;
+            //	Util.Log("Calling SetSendInFlightFlag from " + whereIn);
+        }
+    }
 
 
-	public void SetReceiveInFlightFlag(bool flag, string whereIn)
-	{
-		if (receiveInFlightFlag == flag)
-		{
+    public void SetReceiveInFlightFlag(bool flag, string whereIn)
+    {
+        if (receiveInFlightFlag == flag)
+        {
 
-		}
-		else
-		{
-			receiveInFlightFlag = flag;
-		//	Util.Log("Calling SetReceiveInFlightFlag from " + whereIn);
-		}
-	}
+        }
+        else
+        {
+            receiveInFlightFlag = flag;
+            //	Util.Log("Calling SetReceiveInFlightFlag from " + whereIn);
+        }
+    }
 
     public void SetClientConnectToserverInFlightFlag(bool flag)
     {
@@ -326,7 +338,7 @@ public class NetGameConnection
 
             if (tempSendList.Count > 0)
             {
-            //    Util.Log("\t>>> Sending shit in SocketSend");
+                //    Util.Log("\t>>> Sending shit in SocketSend");
 
                 MemsetZeroBuffer(sendDataBuffer, sendDataBuffer.Length);
 
@@ -365,7 +377,7 @@ public class NetGameConnection
 
                     int msgSize = newCount - oldCount - 4;
                     writer.WriteInt32AtIndex(oldCount, msgSize, "msgSizeHeader");
-              //      Util.LogError("Write msgSize " + msgSize.ToString());
+                    //      Util.LogError("Write msgSize " + msgSize.ToString());
                     oldCount = newCount;
                 }
 
@@ -383,129 +395,129 @@ public class NetGameConnection
                 */
                 SetSendInFlightFlag(true, "BeingSend");
                 m_rawTcpSocket.BeginSend(sendDataBuffer, 0, numBytes, 0, new AsyncCallback(SendCallback), null);
-            //    Util.LogError("BeginSend");
+                //    Util.LogError("BeginSend");
             }
         }
     }
 
     private void SendCallback(IAsyncResult ar)
     {
-		bool endSendSuccess = false;
+        bool endSendSuccess = false;
 
-		try
-		{
-			// Complete sending the data to the remote device
+        try
+        {
+            // Complete sending the data to the remote device
             int numByteSent = m_rawTcpSocket.EndSend(ar);
-		//	Util.Log("Sent " + byteSent.ToString() + " to client");
-			endSendSuccess = true;
+            //	Util.Log("Sent " + byteSent.ToString() + " to client");
+            endSendSuccess = true;
 
-            if( ( NetGlobal.netMeter != null ) && ( NetGlobal.netMeter.IsEnabled() == true ) )
+            if ((NetGlobal.netMeter != null) && (NetGlobal.netMeter.IsEnabled() == true))
             {
-                lock(NetGlobal.netMeter)
+                lock (NetGlobal.netMeter)
                 {
-                    if(IsClientSide())
+                    if (IsClientSide())
                     {
-                        NetGlobal.netMeter.Record(NetMeter.EntryFlag.Client | 
-                                                        NetMeter.EntryFlag.Send | 
+                        NetGlobal.netMeter.Record(NetMeter.EntryFlag.Client |
+                                                        NetMeter.EntryFlag.Send |
                                                         NetMeter.EntryFlag.Tcp, numByteSent);
                     }
                     else if (IsServerSide())
                     {
-                        NetGlobal.netMeter.Record(NetMeter.EntryFlag.Server | 
-                                                        NetMeter.EntryFlag.Send | 
+                        NetGlobal.netMeter.Record(NetMeter.EntryFlag.Server |
+                                                        NetMeter.EntryFlag.Send |
                                                         NetMeter.EntryFlag.Tcp, numByteSent);
                     }
                 }
             }
-		}
-		catch (System.Net.Sockets.SocketException socketExceptionIn)
-		{
-			endSendSuccess = false;
-		}
-		catch (System.Exception exceptionIn)
-		{
-			endSendSuccess = false;
-		}
+        }
+        catch (System.Net.Sockets.SocketException socketExceptionIn)
+        {
+            endSendSuccess = false;
+        }
+        catch (System.Exception exceptionIn)
+        {
+            endSendSuccess = false;
+        }
 
-		if (endSendSuccess == true)
-		{
-			SetSendInFlightFlag(false, "SendCallback");
-		}
-	}
+        if (endSendSuccess == true)
+        {
+            SetSendInFlightFlag(false, "SendCallback");
+        }
+    }
 
 
-	public void PumpSocketReceive()
-	{
-    //    Util.LogError("PumpSocketReceive " + m_connectionState.ToString());
-		//		MemsetZeroBuffer(receiveDataBuffer, receiveDataBufferSize);
+    public void PumpSocketReceive()
+    {
+        //    Util.LogError("PumpSocketReceive " + m_connectionState.ToString());
+        //		MemsetZeroBuffer(receiveDataBuffer, receiveDataBufferSize);
 
-		// apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
-		// Util.Log("SocketReceive");
-		if (receiveInFlightFlag == true)
-		{
-		//	Util.Log("balling cuz receiveInFlightFlag is true ");
-		}
+        // apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
+        // Util.Log("SocketReceive");
+        if (receiveInFlightFlag == true)
+        {
+            //	Util.Log("balling cuz receiveInFlightFlag is true ");
+        }
         else if (m_connectionState != NetGameConnectionState.Connected)
         {
-        //    Util.LogError("PumpSocketReceive Error, not Connected ");
+            //    Util.LogError("PumpSocketReceive Error, not Connected ");
         }
         else if (m_rawTcpSocket == null)
         {
 
         }
-		else
-		{
-			SetReceiveInFlightFlag(true, "BeginReceive in SocketReceive");
+        else
+        {
+            SetReceiveInFlightFlag(true, "BeginReceive in SocketReceive");
 
-			m_rawTcpSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
-		}
-	}
+            m_rawTcpSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
+        }
+    }
 
 
 
     private void ReceiveCallback(IAsyncResult ar)
-	{
-		int numBytesReceived = 0;
-		bool endReceiveSuccess = false;
+    {
+        int numBytesReceived = 0;
+        bool endReceiveSuccess = false;
 
-		try
-		{
-			numBytesReceived = m_rawTcpSocket.EndReceive(ar);
-			endReceiveSuccess = true;
-		}
+        try
+        {
+            numBytesReceived = m_rawTcpSocket.EndReceive(ar);
+            endReceiveSuccess = true;
+        }
 
-		// a socket exception is the most general excepetion that signals
-		// a problem when trying to open or access a socket
-		// https://www.quora.com/What-is-SocketException-and-why-does-it-occur
-		catch (System.Net.Sockets.SocketException socketExceptionIn)
-		{
-			endReceiveSuccess = false;
-		}
-		catch (SystemException exceptionIn)
-		{
-			endReceiveSuccess = false;
-		}
-
-
-	//	Util.LogError("ReceivedCallback, numBytesReceived " + numBytesReceived.ToString());
-		// byte counter
+        // a socket exception is the most general excepetion that signals
+        // a problem when trying to open or access a socket
+        // https://www.quora.com/What-is-SocketException-and-why-does-it-occur
+        catch (System.Net.Sockets.SocketException socketExceptionIn)
+        {
+            endReceiveSuccess = false;
+        }
+        catch (SystemException exceptionIn)
+        {
+            endReceiveSuccess = false;
+        }
 
 
-		if(endReceiveSuccess == true)
-		{
+        //	Util.LogError("ReceivedCallback, numBytesReceived " + numBytesReceived.ToString());
+        // byte counter
+
+
+        if (endReceiveSuccess == true)
+        {
             if (numBytesReceived > 0)
             {
-                if( NetGlobal.netMeter != null && NetGlobal.netMeter.IsEnabled() == true )
+                if (NetGlobal.netMeter != null && NetGlobal.netMeter.IsEnabled() == true)
                 {
-                    lock( NetGlobal.netMeter )
+                    lock (NetGlobal.netMeter)
                     {
-                        if( IsClientSide() )
+                        if (IsClientSide())
                         {
-                            NetGlobal.netMeter.Record( NetMeter.EntryFlag.Client | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived );
+                            NetGlobal.netMeter.Record(NetMeter.EntryFlag.Client | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived);
                         }
-                        else if( IsServerSide() )
+                        else if (IsServerSide())
                         {
-                            NetGlobal.netMeter.Record( NetMeter.EntryFlag.Server | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived );
+                            NetGlobal.netMeter.Record(NetMeter.EntryFlag.Server | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived);
                         }
                     }
                 }
@@ -564,63 +576,66 @@ public class NetGameConnection
             {
                 Util.LogError("numBytesReceived " + numBytesReceived.ToString());
             }
-			SetReceiveInFlightFlag(false, "ReceiveCallback");
-		}
+            SetReceiveInFlightFlag(false, "ReceiveCallback");
+        }
 
-	//	Util.LogError("At the end of ReceiveCallback");
-	}
-        
-
-
-	public void ProcessIncomingMessages()
-	{
-		lock (m_receiveMessageListLock)
-		{
-			// probably better to use a queue?
-        //    Util.LogError("m_receiveMessageList.Count " + m_receiveMessageList.Count.ToString());
-
-			while (m_receiveMessageList.Count != 0)
-			{
-				Message message = m_receiveMessageList[0];
-
-				if (OnHandleMessage != null)
-				{
-					OnHandleMessage(this, message);
-				}
-				m_receiveMessageList.RemoveAt(0);
-			}
-		}
-	}
+        //	Util.LogError("At the end of ReceiveCallback");
+    }
 
 
-	private void MemsetZeroBuffer(byte[] buffer, int size)
-	{
-		for (int i = 0; i < size; i++)
-		{
-			buffer[i] = 0;
-		}
-	}
+
+    public void ProcessIncomingMessages()
+    {
+        lock (m_receiveMessageListLock)
+        {
+            // probably better to use a queue?
+            //    Util.LogError("m_receiveMessageList.Count " + m_receiveMessageList.Count.ToString());
+
+            while (m_receiveMessageList.Count != 0)
+            {
+                Message message = m_receiveMessageList[0];
 
 
-	private void PrintBuffer(byte[] buffer, int size)
-	{
-		string temp = "";
-		for (int i = 0; i < size; i++)
-		{
-			temp += buffer[i].ToString();
-		}
-		Util.LogError(temp);
-	}
+
+
+                if (OnHandleMessage != null)
+                {
+                    OnHandleMessage(this, message);
+                }
+                m_receiveMessageList.RemoveAt(0);
+            }
+        }
+    }
+
+
+    private void MemsetZeroBuffer(byte[] buffer, int size)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            buffer[i] = 0;
+        }
+    }
+
+
+    private void PrintBuffer(byte[] buffer, int size)
+    {
+        string temp = "";
+        for (int i = 0; i < size; i++)
+        {
+            temp += buffer[i].ToString();
+        }
+        Util.LogError(temp);
+    }
 
 
 
     public void PumpClientConnect()
     {
-        if( m_connectionState == NetGameConnectionState.ClientContactingServer )
+        if (m_connectionState == NetGameConnectionState.ClientContactingServer)
         {
             double now = Util.GetRealTimeMS();
 
-            if (clientConnectToServerInFlightFlag == false && (now - clientConnectToServerStartTime >= ClientConnectTimeOut_ms) )
+            if (clientConnectToServerInFlightFlag == false && (now - clientConnectToServerStartTime >= ClientConnectTimeOut_ms))
             {
                 clientConnectToServerInFlightFlag = true;
                 PrivateAsyncClientConnect();
@@ -636,21 +651,21 @@ public class NetGameConnection
 
         try
         {
-            m_rawTcpSocket.Disconnect( true );
+            m_rawTcpSocket.Disconnect(true);
         }
-        catch( System.Exception exceptionIn )
+        catch (System.Exception exceptionIn)
         {
             Util.LogError("PrivateAsyncClientConnect, m_rawTcpSocket.Disconnect exception");
-        //    Util.UnusedVar<System.Exception>( exceptionIn );
+            //    Util.UnusedVar<System.Exception>( exceptionIn );
         }
         try
         {
             m_rawTcpSocket.Close();
         }
-        catch( System.Exception exceptionIn )
+        catch (System.Exception exceptionIn)
         {
             Util.LogError("PrivateAsyncClientConnect, m_rawTcpSocket.Close exception");
-        //    Util.UnusedVar<System.Exception>( exceptionIn );
+            //    Util.UnusedVar<System.Exception>( exceptionIn );
         }
         m_rawTcpSocket = null;
 
@@ -660,19 +675,19 @@ public class NetGameConnection
         try
         {
             Util.LogError("BeginConnect");
-            m_rawTcpSocket.BeginConnect( serverIpAddress, serverPort, new AsyncCallback( PrivateAsyncClientConnectCallback ), m_rawTcpSocket );
+            m_rawTcpSocket.BeginConnect(serverIpAddress, serverPort, new AsyncCallback(PrivateAsyncClientConnectCallback), m_rawTcpSocket);
         }
-        catch( System.Exception exceptionIn )
+        catch (System.Exception exceptionIn)
         {
-            Util.LogError( "PumpClientConnect " + ": Exception=\"" + exceptionIn.ToString() + "\"" );
-            SetConnectionState( NetGameConnectionState.ClientConnectError );
+            Util.LogError("PumpClientConnect " + ": Exception=\"" + exceptionIn.ToString() + "\"");
+            SetConnectionState(NetGameConnectionState.ClientConnectError);
         }
     }
 
 
 
 
-    private void PrivateAsyncClientConnectCallback(IAsyncResult ar )
+    private void PrivateAsyncClientConnectCallback(IAsyncResult ar)
     {
         try
         {
@@ -680,40 +695,40 @@ public class NetGameConnection
             // if it fails, it will just go into Connection
             // otherwise, this will go through and run the OnConnectedCallBack
 
-            if( m_rawTcpSocket == null )
+            if (m_rawTcpSocket == null)
             {
                 return;
             }
 
-            m_rawTcpSocket.EndConnect(ar); 
+            m_rawTcpSocket.EndConnect(ar);
 
             OnClientSocketConnected();
         }
-        catch( System.Net.Sockets.SocketException socketExceptionIn )
+        catch (System.Net.Sockets.SocketException socketExceptionIn)
         {
-            Util.LogError("socketExceptionIn " );
-            if( socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.ConnectionRefused ) // 10061 )
+            Util.LogError("socketExceptionIn ");
+            if (socketExceptionIn.ErrorCode == (int)System.Net.Sockets.SocketError.ConnectionRefused) // 10061 )
             {
                 // no need to log this.  This means there isn't a server running at that IP (or there is one but it's not letting us in)
-                Util.LogError("connection refused? " );
+                Util.LogError("connection refused? ");
             }
 
             // Netw
-            else if( socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.NetworkDown )  // 10050 )
+            else if (socketExceptionIn.ErrorCode == (int)System.Net.Sockets.SocketError.NetworkDown)  // 10050 )
             {
                 // no need to log this.  This means there isn't a server running at that IP (or there is one but it's not letting us in)
-                Util.LogError("connection NetworkDown? " );
+                Util.LogError("connection NetworkDown? ");
             }
             else
             {
                 string errString = "SOCKET EXCEPTION! ErrorCode = " + socketExceptionIn.ErrorCode.ToString() + ", Exception = \"" + socketExceptionIn.ToString() + "\"";
-                Util.LogError( errString );
+                Util.LogError(errString);
             }
         }
-        catch( System.Exception exceptionIn )
+        catch (System.Exception exceptionIn)
         {
             string errString = "EXCEPTION! Exception = \"" + exceptionIn.ToString() + "\"";
-            Util.LogError( errString );
+            Util.LogError(errString);
         }
         clientConnectToServerInFlightFlag = false;
     }
@@ -721,13 +736,15 @@ public class NetGameConnection
 
     public bool IsConnected()
     {
+        // consider removing the socketConnected flag,
+        // just do and Or statement will all the relevant NetGameConnectionState States
         return m_socketConnected;
     }
 
 
     private void OnClientSocketConnected()
     {
-        Util.LogError("SetConnectionState(NetGameConnectionState.Connected)");;
+        Util.LogError("SetConnectionState(NetGameConnectionState.Connected)"); ;
 
         m_socketConnected = true;
 
@@ -745,8 +762,21 @@ public class NetGameConnection
         string tmpStr = "ClientConnectCallback(client@" + localAddressAndPortString + " " + this.m_connectionName + " to server@" + remoteAddressAndPortString + ")";
         Util.Log(tmpStr);
 
-        // if socket connection succeeds, start sending a connection request
 
+        m_netGameConnectionConfig.clientAutoPingEnabled = true;
+
+        pingHelper.Init(m_netGameConnectionConfig.clientAutoPingEnabled, m_netGameConnectionConfig.clientAutoPingInMs);
+        heartbeatHelper.Init();
+
+
+        Int64 timeStampNow = Util.GetRealTimeMS();
+        pingHelper.UpdateTimeStampConnected(timeStampNow);
+        heartbeatHelper.UpdateTimeStampConnected(timeStampNow);
+
+
+
+
+        // if socket connection succeeds, start sending a connection request
         Message message = Message.ClientConnectRequest();
         SendMessage(message);
     }
@@ -755,11 +785,11 @@ public class NetGameConnection
 
 
     public void OnServerSocketConnected()
-	{
-		SetConnectionState(NetGameConnectionState.Connected);
-		SetConnectionSide(NetGameConnectionSide.ServerSide);
-	}
-	/*
+    {
+        SetConnectionState(NetGameConnectionState.Connected);
+        SetConnectionSide(NetGameConnectionSide.ServerSide);
+    }
+    /*
 		public void AsyncClientConnectToHost(string ipAddress, int port)
 		{
 			// this is a blocking call
@@ -789,13 +819,16 @@ public class NetGameConnection
 		}
 			*/
 
-	// pump means tick
-	public void Pump()
+    // pump means tick
+    public void Pump()
     {
         PumpClientConnect();
-		PumpSocketSend();
-		PumpSocketReceive();
-		ProcessIncomingMessages();
+        PumpAutoPings();
+
+
+        PumpSocketSend();
+        PumpSocketReceive();
+        ProcessIncomingMessages();
 
         // listen for stuff
 
@@ -825,6 +858,31 @@ public class NetGameConnection
             
         }
         */
+    }
+
+
+
+
+    public void PumpAutoPings()
+    {
+        if (IsConnected() == true)
+        {
+            if (pingHelper.IsAutoPingEnabled())
+            {
+                Int64 now_ms = Util.GetRealTimeMS();	// now!
+
+                if (pingHelper.CanSendPingNow(now_ms))
+                {
+                    Util.LogError("Sending Ping");
+                    int pingId = pingHelper.GetNewPingId();
+
+                    Message sysPingMessage = Message.SysPingMessage(pingId, now_ms, true); // yes, we want a reply!
+                    SendMessage(sysPingMessage);
+
+                    pingHelper.UpdateTimeStamp(now_ms);
+                }
+            }
+        }
     }
 }
 

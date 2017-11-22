@@ -49,7 +49,6 @@ public class Main : MonoBehaviour
 	void Start () 
     {
         instance = this;
-        clientDebugPanel = new ClientDebugPanel();
 
   //      netMeterManager.Init();
 
@@ -79,8 +78,12 @@ public class Main : MonoBehaviour
 
         networkManager.GetServerIPAddress();
 
+
+
         NetGlobal.netMeter.Init();
         NetGlobal.netMeter.Enable(true);
+
+        Time.fixedDeltaTime = Globals.FIXED_UPDATE_TIME_s;
 
         ui = new UIManager();
         ui.Init();
@@ -94,9 +97,10 @@ public class Main : MonoBehaviour
 
 
         InitMainGameClient();
+        clientDebugPanel = new ClientDebugPanel();
+        clientDebugPanel.SetLocalGameClient(mainGameClient);
 
-
-	}
+    }
 
 
 

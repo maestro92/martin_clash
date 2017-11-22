@@ -151,6 +151,30 @@ public class RateSmoother
         return true;
     }
 
+    public int GetFrameDiff()
+    {
+        return m_frameHead - m_frameTail;
+    }
+
+    public int GetFrameHead()
+    {
+        return m_frameHead;
+    }
+
+    public int GetFrameTail()
+    {
+        return m_frameTail;
+    }
+
+    public int GetFrameConsumeCounter()
+    {
+        return m_consumeCounter;
+    }
+
+    public int GetNumFramesToBufferAhead()
+    {
+        return m_numFramesToBufferAhead;
+    }
 }
 
 

@@ -120,6 +120,19 @@ public class GameClient
                 Message loginRequest = Message.Login();
                 connection.SendMessage(loginRequest);
                 break;
+            case Message.Type.SysPing:
+                Debug.LogError("ClientDebugPanel OnHandled Message SysPing");
+                if(message.wantReply)
+                {
+                    Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
+                    connection.SendMessage(sysPingMessage2);
+                }
+                else
+                {
+                    Int64 now_ms = Util.GetRealTimeMS();
+                    connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
+                }
+                break;
 
             case Message.Type.LoginResponse:
             //    Util.LogError("Handling LoginResponse");
