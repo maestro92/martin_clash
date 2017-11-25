@@ -23,10 +23,7 @@ public class UIManager
     public void Init()
     {
         Vector2 prefabPosition = Vector2.zero;
-
-        networkStatusScreen = InitController<NetworkStatusScreenController>("NetworkStatusScreen");
-        networkStatusScreen.Init();
-
+        
         battleScreen = InitController<BattleScreenController>("BattleScreen");
         battleScreen.Init();
 
@@ -39,6 +36,8 @@ public class UIManager
         mainMenu = InitController<MainMenuController>("MainMenu");
         mainMenu.Init();
 
+        networkStatusScreen = InitController<NetworkStatusScreenController>("NetworkStatusScreen");
+        networkStatusScreen.Init();
     }
 
     private T InitController<T>(string prefab)

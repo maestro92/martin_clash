@@ -24,11 +24,15 @@ public class Message : INetSerializer
         EndFrame,
 
         SysPing,
+        SysHeartbeat,
     };
 
     public bool wantReply;
     public int pingId;
     public Int64 timeStampInMs;
+
+    // for SysHeartbeat
+    public int cargoSize;
 
     public Type type;
 	public int userId;
@@ -89,7 +93,16 @@ public class Message : INetSerializer
         return message;     
     }
 
-	public static Message SearchMatch()
+    public static Message SysHeartbeatMessage(Int64 timeStampInMsIn, int cargoSizeIn, bool wantReplyIn)
+    {
+        Message message = Message.GetOne(Type.SysHeartbeat);
+        message.timeStampInMs = timeStampInMsIn;
+        message.cargoSize = cargoSizeIn;
+        message.wantReply = wantReplyIn;
+        return message;
+    }
+
+    public static Message SearchMatch()
 	{
 		Message message = Message.GetOne(Type.SearchMatch);
 		return message;
@@ -198,8 +211,15 @@ public class Message : INetSerializer
                 writer.WriteOne<ServerFrameInfo>(serverFrameInfo, "ServerFrameInfo");
 				break;
 
+            case Message.Type.SysHeartbeat:
+                writer.WriteInt64(timeStampInMs, "timeStampInMs");
+                writer.WriteInt32(cargoSize, "cargoSize");
+                writer.WriteBool(wantReply, "wantReply");
+                break;
+
             case Message.Type.SysPing:
                 writer.WriteInt32(pingId, "pingId");
+                writer.WriteInt64(timeStampInMs, "timeStampInMs");
                 writer.WriteBool(wantReply, "wantReply");
                 break;
             default:   
@@ -268,8 +288,16 @@ public class Message : INetSerializer
                 serverFrameInfo = reader.ReadOne<ServerFrameInfo>(() => ServerFrameInfo.GetOne(), "serverFrameInfo"); 
 
                 break;
+
+            case Message.Type.SysHeartbeat:
+                timeStampInMs = reader.ReadInt64("timeStampInMs");
+                cargoSize = reader.ReadInt32("cargoSize");
+                wantReply = reader.ReadBool("wantReply");
+                break;
+
             case Message.Type.SysPing:
                 pingId = reader.ReadInt32("pingId");
+                timeStampInMs = reader.ReadInt64("timeStampInMs");
                 wantReply = reader.ReadBool("wantReply");
                 break;
 

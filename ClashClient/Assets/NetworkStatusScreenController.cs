@@ -32,7 +32,7 @@ public class NetworkStatusScreenController : MonoBehaviour
             switch (state)
             {
                 case NetGameConnectionState.ClientContactingServer:
-                case NetGameConnectionState.Disconnected:
+                case NetGameConnectionState.ClientDisconnected:
                 case NetGameConnectionState.None:
                     shouldBeOn = true;
                     break;

@@ -93,14 +93,11 @@ public class NetBuffer
 
 		NetUtil.NativeToNetworkEndian(byteArray, 0, byteArray.Length);
 
-
-
-
 		// convert from Native Endian to Network Endian
 		return WriteData(byteArray, 0, byteArray.Length);
 	}
 
-	public bool WriteInt64(int valueIn)
+	public bool WriteInt64(Int64 valueIn)
 	{
 		int length = sizeof(Int64);
 		byte[] byteArray = BitConverter.GetBytes(valueIn);
@@ -199,11 +196,11 @@ public class NetBuffer
 		Int64 val = 0;
 		try
 		{
-			val = BitConverter.ToInt32(m_tempReadByteArray, 0);
+			val = BitConverter.ToInt64(m_tempReadByteArray, 0);
 		}
 		catch (System.Exception exceptionIn)
 		{
-			Util.LogError("error reading in ReadInt32");
+			Util.LogError("error reading in ReadInt64");
 		}
 		return val;
 	}

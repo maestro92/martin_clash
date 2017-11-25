@@ -31,7 +31,9 @@ public class GameClient
         m_simMessageQueue = new Queue<Message>();
 
         rateSmoother = new RateSmoother();
-        rateSmoother.Init();
+        rateSmoother.Init(RateSmoother.RateSmootherMode.Fastest);
+//        rateSmoother.Init(RateSmoother.RateSmootherMode.Smooth);
+
 
         frameBufferAnalyzer = new FrameBufferAnalyzer();
         frameBufferAnalyzer.Init();
@@ -45,10 +47,9 @@ public class GameClient
         connection.OnHandleMessage = OnHandledMessage;
 
         Util.Log("Esablishing Connection to " + hostIPAddress);
-
-//        connection.ConnectToHost(hostIPAddress, NetworkManager.SERVER_PORT);
+        Util.LogError("Esablishing Connection to " + hostIPAddress);
         connection.SetConnectToHostInfo(hostIPAddress, NetworkManager.SERVER_PORT);
-
+        connection.SetConnectionState(NetGameConnectionState.ClientContactingServer);
 
 
         Util.Log("StartNetworkSession");
@@ -86,7 +87,7 @@ public class GameClient
     {
         rateSmoother.StartLoop();
 
-    //    while (rateSmoother.ConsumeFrame())
+        while (rateSmoother.ConsumeFrame())
         {
             while (m_simMessageQueue.Count > 0 && m_simMessageQueue.Peek().frameCount == clientSim.simulation.curFrameCount)
             {        
@@ -116,12 +117,10 @@ public class GameClient
         switch (message.type)
         {
             case Message.Type.ServerConnectResponse:
-           //     Util.LogError("Handling ServerClientResponse");
                 Message loginRequest = Message.Login();
                 connection.SendMessage(loginRequest);
                 break;
             case Message.Type.SysPing:
-                Debug.LogError("ClientDebugPanel OnHandled Message SysPing");
                 if(message.wantReply)
                 {
                     Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
@@ -131,6 +130,18 @@ public class GameClient
                 {
                     Int64 now_ms = Util.GetRealTimeMS();
                     connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
+                }
+                break;
+
+            case Message.Type.SysHeartbeat:
+                if (message.wantReply)
+                {
+                    Message sysHeartbeatMsg = Message.SysHeartbeatMessage(message.timeStampInMs, message.cargoSize, false);
+                    connection.SendMessage(sysHeartbeatMsg);
+                }
+                else
+                {
+                    // not do anything
                 }
                 break;
 

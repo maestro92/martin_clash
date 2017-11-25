@@ -136,6 +136,11 @@ public class ClientDebugPanel
 
         RenderShowButton();
 
+        if(showLivePingFPSOverlay)
+        {
+            RenderLivePingFPSOverlay();
+        }
+
         if (showNetPerfPanel == true)
         {
             RenderNetPerfPanel();
@@ -146,6 +151,17 @@ public class ClientDebugPanel
         
         }
     }
+
+    private void RenderLivePingFPSOverlay()
+    {
+        float panelWidth = 90.0f;
+        float panelHeight = 24.0f + 24.0f + 10;
+        float panelUlx = VirtualScreenWidth - panelWidth - 5;
+        float panelUly = 10.0f;
+        Color colorPanel = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+        AddPanel(panelUlx, panelUly, panelWidth, panelHeight, colorPanel);
+    }
+
 
     private void RenderNetPerfPanel()
     {
@@ -193,10 +209,12 @@ public class ClientDebugPanel
         x = 0;
         y += (dy + gy);
 
+
+
         // row 2
         AddText( x, y, w, dy, Color.white, "Ping", TextAnchor.UpperLeft, 24 );
         x += panelWidth - w;
-        AddText(x, y, w, dy, Color.white, m_localGameClient.connection.pingHelper.GetPing().ToString());
+        AddText(x, y, w, dy, Color.white, m_localGameClient.connection.pingHelper.GetPing().ToString() + "ms");
 
         x = 0;
         y += (dy + gy);

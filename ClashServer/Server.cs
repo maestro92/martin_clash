@@ -292,7 +292,33 @@ public class Server
 				Util.Log("\tHandling ServerClientResponse");
 				break;
 
-			case Message.Type.Login:
+            case Message.Type.SysHeartbeat:
+                if (message.wantReply)
+                {
+                    Message sysHeartbeatMsg = Message.SysHeartbeatMessage(message.timeStampInMs, message.cargoSize, false);
+                    connection.SendMessage(sysHeartbeatMsg);
+                }
+                else
+                {
+                    // Not do anything
+                }
+                break;
+
+
+            case Message.Type.SysPing:
+                if (message.wantReply)
+                {
+                    Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
+                    connection.SendMessage(sysPingMessage2);
+                }
+                else
+                {
+                    Int64 now_ms = Util.GetRealTimeMS();
+                    connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
+                }
+                break;
+
+            case Message.Type.Login:
 				Util.Log("\tHandling Login");
 				int userId = userCounter++;
 				Message loginResponse = Message.LoginResponse(userId);

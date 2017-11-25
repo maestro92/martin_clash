@@ -7,13 +7,13 @@ public class NetMeter
     // flags will be used as a filter
     [Flags]
     public enum EntryFlag : uint
-    {
-        None = 0,           // 0x00000000
-        Server = 1 << 0,    // 0x00000001
-        Client = 1 << 1,    // 0x00000002
-        Send = 1 << 2,      // 0x00000004
-        Receive = 1 << 3,   // 0x00000008
-        Tcp = 1 << 4        // 0x00000010
+    {                       // just showing the last byte
+        None = 0,           // 00000000
+        Server = 1 << 0,    // 000000001        0x00000001
+        Client = 1 << 1,    // 000000010        0x00000002
+        Send = 1 << 2,      // 000000100
+        Receive = 1 << 3,   // 000001000
+        Tcp = 1 << 4        // 000010000
     };
 
 
@@ -21,10 +21,10 @@ public class NetMeter
     [Flags]
     public enum CaptureFlag : uint
     {
-        None = 0,           // 0x00000000
-        Server = 1 << 0,    // 0x00000001
-        Client = 1 << 1,    // 0x00000002
-        Tcp = 1 << 2
+        None = 0,           // 00000000
+        Server = 1 << 0,    // 000000001        0x00000001
+        Client = 1 << 1,    // 000000010        0x00000002
+        Tcp = 1 << 2        // 000000100        0x00000004   
     };
 
 
@@ -101,9 +101,9 @@ public class NetMeter
     public void Init()
     {
         // we will capture 3 seconds worth of data
-        m_numMaxEntries = 3000;
-        SetCaptureWindowSizeMs(3000);
-        SetNumVerticalBytesInMeter(50);
+        m_numMaxEntries = 2000;
+        SetCaptureWindowSizeMs(2000);
+        SetNumVerticalBytesInMeter(512);
         m_quantizeToNearestMS = 25;  // 5 millisecond
         m_enabled = false;
         m_netMeterCaptureFlags = CaptureFlag.None;

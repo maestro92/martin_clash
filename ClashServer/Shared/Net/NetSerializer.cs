@@ -241,6 +241,15 @@ public class NetSerializer
 		m_writeBuffer.WriteInt32(value);
 	}
 
+    public void WriteInt64(Int64 value, string varLogName)
+    {
+        if (m_mode != NetSerializationMode.Writer)
+        {
+            ThrowException("NetSerializer.WriteInt32(): Not in writer mode!!!!");
+        }
+
+        m_writeBuffer.WriteInt64(value);
+    }
 
     public void WriteBool(bool value, string varLogName)
     {
@@ -305,6 +314,26 @@ public class NetSerializer
 		}
 		return value;
 	}
+
+    public Int64 ReadInt64(string varLogName)
+    {
+        if(m_mode != NetSerializationMode.Reader)
+        {
+            ThrowException("NetSerializer.ReadInt64(): Not in reader mode!!!!");
+        }
+        Int64 value = 0;
+
+        try 
+        {
+            value = m_readBuffer.ReadInt64();
+        }
+        catch( System.Exception exceptionIn)
+        {
+            ThrowException(exceptionIn.ToString());
+        }
+
+        return value;
+    }
 
     public float ReadFloat(string varLogName)
     {

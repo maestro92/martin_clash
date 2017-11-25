@@ -30,10 +30,12 @@ public class RateSmoother
     }
 
     // I prefer to have a init function, so it is more explicit
-    public void Init()
+    public void Init(RateSmootherMode mode)
     {
         m_frameHead = 0;
         m_frameTail = 0;
+
+        m_mode = mode;
 
         m_numFramesAvailableToConsumeThisTick = 0;
         m_numFramesConsumedThisTick = 0;
@@ -65,7 +67,9 @@ public class RateSmoother
 
     public void StartLoop()
     {
-        m_numFramesAvailableToConsumeThisTick = GetNumFramesAvailableToConsumeThisTick();     
+        m_numFramesAvailableToConsumeThisTick = GetNumFramesAvailableToConsumeThisTick();
+
+        // Util.LogError("m_numFramesAvailableToConsumeThisTick " + m_numFramesAvailableToConsumeThisTick.ToString());
         m_numFramesConsumedThisTick = 0;
 
         if (m_numFramesAvailableToConsumeThisTick <= 0)
@@ -85,6 +89,12 @@ public class RateSmoother
     {
         int availableFrames = m_frameHead - m_frameTail;
 
+        /*
+        Util.LogError("m_frameHead " + m_frameHead.ToString());
+        Util.LogError("m_frameTail " + m_frameTail.ToString());
+        Util.LogError("availableFrames " + availableFrames.ToString());
+        Util.LogError("m_mode " + m_mode.ToString());
+        */
         if (availableFrames <= 0)
         {
             return 0;
@@ -130,7 +140,6 @@ public class RateSmoother
 
     public bool ConsumeFrame()
     {
-        Util.LogError("Consuming Frames");
         if (m_numFramesAvailableToConsumeThisTick <= 0)
         {
             return false;
@@ -144,7 +153,7 @@ public class RateSmoother
             Util.LogError("Game Resume running");
             m_isRunning = true;
         }
-
+        Util.LogError("inside here");
         m_frameTail++;
         m_consumeCounter++;
 
