@@ -21,7 +21,7 @@ public class NetGameConnectionConfig
     public static int DefaultClientHeartbeatInMs = (5 * 1000);
     public static int DefaultClientHeartbeatCargoSize = 0;
 
-    public static bool DefaultClientReconnectEnabled = false;
+    public static bool DefaultClientReconnectEnabled = true;
     public static int DefaultClientReconnectCoolOffTimeInMS = (8 * 1000);
 
 

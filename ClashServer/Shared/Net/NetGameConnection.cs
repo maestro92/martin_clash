@@ -241,17 +241,17 @@ public class NetGameConnection
 
     public void Disconnect()
     {
+        ResetSocket();
+
         if (IsClientSide())
         {
+            Util.LogError("Client Disconnect");
             ClientDisconnect();
-
         }
         else if (IsServerSide())
         {
             ServerDisconnect();
         }
-
-        ResetSocket();
     }
 
     private void ServerDisconnect()
@@ -264,7 +264,7 @@ public class NetGameConnection
         double now = Util.GetRealTimeMS();
         clientDisconnectedStartTime = now;
         SetConnectionState(NetGameConnectionState.ClientDisconnected);
-        ResetConnectToHostInfo();
+     //   ResetConnectToHostInfo();
         pingHelper.Reset();
         heartbeatHelper.Reset();
     }
@@ -508,11 +508,11 @@ public class NetGameConnection
         // Util.Log("SocketReceive");
         if (receiveInFlightFlag == true)
         {
-            //	Util.Log("balling cuz receiveInFlightFlag is true ");
+
         }
         else if (m_connectionState != NetGameConnectionState.Connected)
         {
-            //    Util.LogError("PumpSocketReceive Error, not Connected ");
+
         }
         else if (m_rawTcpSocket == null)
         {
@@ -545,13 +545,14 @@ public class NetGameConnection
         // a problem when trying to open or access a socket
         // https://www.quora.com/What-is-SocketException-and-why-does-it-occur
         catch (System.Net.Sockets.SocketException socketExceptionIn)
-        {
+        {            
             endReceiveSuccess = false;
             if(socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.ConnectionReset) // 10054
             {
                 killingConnectionNow = true;
                 killConnectionMsg = "ConnectionReset";
             }
+
         }
         catch (SystemException exceptionIn)
         {
@@ -711,11 +712,13 @@ public class NetGameConnection
     {
         if (m_connectionState == NetGameConnectionState.ClientDisconnected)
         {
-            if(m_netGameConnectionConfig.clientReconnectEnabled)
+            if (m_netGameConnectionConfig.clientReconnectEnabled)
             {
                 double now = Util.GetRealTimeMS();
+
                 if ((now - clientDisconnectedStartTime >= m_netGameConnectionConfig.clientReconnectCoolOffTimeInMs))
                 {
+                    Util.LogError(" Reconnecting: ClientContactingServer");
                     m_connectionState = NetGameConnectionState.ClientContactingServer;
                 }
             }
@@ -729,17 +732,29 @@ public class NetGameConnection
         {
             m_rawTcpSocket.Disconnect(true);
         }
+        catch (System.Net.Sockets.SocketException socketExceptionIn)
+        {
+            Util.LogError("ResetSocket  socketExceptionIn ");
+
+            {
+                string errString = "SOCKET EXCEPTION! ErrorCode = " + socketExceptionIn.ErrorCode.ToString() + ", Exception = \"" + socketExceptionIn.ToString() + "\"";
+                Util.LogError(errString);
+            }
+
+        }            
         catch (System.Exception exceptionIn)
         {
-            Util.LogError("PrivateAsyncClientConnect, m_rawTcpSocket.Disconnect exception");
+            Util.LogError("ResetSocket   PrivateAsyncClientConnect, m_rawTcpSocket.Disconnect exception " + exceptionIn.ToString());
         }
+        
+
         try
         {
             m_rawTcpSocket.Close();
         }
         catch (System.Exception exceptionIn)
         {
-            Util.LogError("PrivateAsyncClientConnect, m_rawTcpSocket.Close exception");
+            Util.LogError("ResetSocket   PrivateAsyncClientConnect, m_rawTcpSocket.Close exception " + exceptionIn.ToString());
         }
         m_rawTcpSocket = null;
     }
@@ -826,7 +841,6 @@ public class NetGameConnection
     {
         Util.LogError("SetConnectionState(NetGameConnectionState.Connected)"); ;
 
-//        m_socketConnected = true;
 
         SetConnectionState(NetGameConnectionState.Connected);
         SetConnectionSide(NetGameConnectionSide.ClientSide);
@@ -841,6 +855,10 @@ public class NetGameConnection
 
         string tmpStr = "ClientConnectCallback(client@" + localAddressAndPortString + " " + this.m_connectionName + " to server@" + remoteAddressAndPortString + ")";
         Util.Log(tmpStr);
+
+
+        SetSendInFlightFlag(false, "OnClientSocketConnected");
+        SetReceiveInFlightFlag(false, "OnClientSocketConnected");
 
 
         m_netGameConnectionConfig.clientAutoPingEnabled = true;
@@ -868,6 +886,9 @@ public class NetGameConnection
     {
         SetConnectionState(NetGameConnectionState.Connected);
         SetConnectionSide(NetGameConnectionSide.ServerSide);
+
+        SetSendInFlightFlag(false, "OnServerSocketConnected");
+        SetReceiveInFlightFlag(false, "OnServerSocketConnected");
 
         heartbeatHelper.Init(m_netGameConnectionConfig.serverHeartbeatEnabled, m_netGameConnectionConfig.serverHeartbeatInMs, m_netGameConnectionConfig.serverHeartbeatCargoSize);
     }
@@ -953,7 +974,7 @@ public class NetGameConnection
 
                 if (heartbeatHelper.CanSendHeartbeatNow(now_ms))
                 {
-                    Util.LogError("Sending Heartbeat");
+                    Util.LogError("Sending Heartbeat  " + m_connectionState.ToString());
 
                     Message heartbeatMessage = Message.SysHeartbeatMessage(now_ms, heartbeatHelper.GetCargoSize(), true); // yes, we want a reply!
                     SendMessage(heartbeatMessage);
