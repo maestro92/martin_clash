@@ -486,6 +486,85 @@ Again, this should be a common thing if u do openGL stuff often...
 
 
 
+##################################################################################
+##################################### 2017/11/28 #################################
+##################################################################################
+
+I am back again after doing lots of physics profiling for my work...
+
+recently stumbled upon a question:
+
+C# shutdown vs disconnect vs close, what is the difference?
+
+
+Socket.Shutdown
+
+when using a connection-oriented Socket, always call the Shutdown method before closing the Socket. This ensures that all data is sent and received on the connected socket before it is closed
+
+
+
+Socket.Close
+
+call the Close method to free all managed and unmanaged resources associated with the Socket. Do not attempt to reuse Socket after closing
+
+https://msdn.microsoft.com/en-us/library/system.net.sockets.socket.shutdown(v=vs.110).aspx
+
+
+
+
+More Links:
+https://social.msdn.microsoft.com/Forums/en-US/8a8e6eb7-1998-4d79-a3bc-294acceb58d3/clean-termination-of-socket-connections?forum=netfxnetcom
+
+The following article clarifies the different ways of disposing of a Socket
+
+
+Shutting down a socket connection involes an exchange of protocol messages between two endpoints, hereafter referred to as a shutdown sequence
+
+https://msdn.microsoft.com/en-us/library/ms738547(v=VS.85).aspx
+
+
+
+
+
+
+
+
+select (with the read mask set) will return with the handle signalled, but when you use ioctl* to check the number of bytes pending to be read, it will be zero. This is a sign that the socket has been disconnected.
+
+This is a great discussion on the various methods of checking that the client has disconnected: Stephen Cleary, Detection of Half-Open (Dropped) Connections.
+
+* for Windows use ioctlsocket.
+
+https://stackoverflow.com/questions/283375/detecting-tcp-client-disconnect
+
+
+
+
+
+##################################################################################
+##################################### 2017/12/04 #################################
+##################################################################################
+
+Today's post is actually just gonna be a follow up on 11/28th post. Aside from all the googling, just look into Unix Network Programming Volume3. 
+that has all the answers properly written for you
+
+
+
+##################################################################################
+##################################### 2017/12/06 #################################
+##################################################################################
+
+For the past two days, I stumbled upon a major problem. In Milota's code, assuming I have the setup of server and client (running on unity).
+Whenever I stop the editor running, the server will get the the "socket.EndReceive() returns 0 bytes" scenario to happen. That is essentially the socket receiving the end-of-file
+happening.
+
+However for some reason, when I was making my clash clone, I had problem recreating that.
+
+Turns out, that in unity editor, there is this OnApplicationQuit() function, in which is called whenever you close the editor, that is called. And in Milota's code, that is where
+the socket shutdown is happening, in which I see the EOF (TCP Fin packet) to be sent from the client to the server.
+
+During the debugging process, I also had downloaded Wireshark to check if on the loopback ip address, if there was any TCP FIN packet going on. So WireShark is useful for debugging
+On Windows, getting WireShark to capture on the loopback ip channel requires some additional setup. So do that.
 
 
 

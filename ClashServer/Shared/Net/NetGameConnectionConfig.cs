@@ -21,10 +21,19 @@ public class NetGameConnectionConfig
     public static int DefaultClientHeartbeatInMs = (5 * 1000);
     public static int DefaultClientHeartbeatCargoSize = 0;
 
+    // Reconnect
     public static bool DefaultClientReconnectEnabled = true;
     public static int DefaultClientReconnectCoolOffTimeInMS = (8 * 1000);
 
+    // Timeout
+    public static bool DefaultServerTimeoutEnabled = true;
+    public static int DefaultServerTimeoutInMs = 20 * 1000;
 
+    public static bool DefaultClientTimeoutEnabled = true;
+    public static int DefaultClientTimeoutInMs = 20 * 1000;
+
+    public static bool DefaultServerKickingEnabled = true;
+    public static int DefaultServerKickingInMs = 10 * 1000;
 
     // local variables
     // Ping
@@ -45,6 +54,17 @@ public class NetGameConnectionConfig
 
     public bool clientReconnectEnabled = DefaultClientReconnectEnabled;
     public int clientReconnectCoolOffTimeInMs = DefaultClientReconnectCoolOffTimeInMS;
+
+    // Timeout
+    public bool serverTimeoutEnabled = DefaultServerTimeoutEnabled;
+    public int serverTimeoutInMs = DefaultServerTimeoutInMs;
+
+    public bool clientTimeoutEnabled = DefaultClientTimeoutEnabled;
+    public int clientTimeoutInMs = DefaultClientTimeoutInMs;
+
+    public bool serverKickingEnabled = DefaultServerKickingEnabled;
+    public int serverKickingInMs = DefaultServerKickingInMs;
+
 
     public NetGameConnectionConfig()
     {

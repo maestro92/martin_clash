@@ -88,6 +88,9 @@ public class NetGameConnection
 
     public PingHelper pingHelper;
     public HeartbeatHelper heartbeatHelper;
+    public TimeoutHelper timeoutHelper;
+
+    private int counter = 0;
 
     public NetGameConnection()
     {
@@ -120,6 +123,7 @@ public class NetGameConnection
         m_netGameConnectionConfig = new NetGameConnectionConfig();
         pingHelper = new PingHelper();
         heartbeatHelper = new HeartbeatHelper();
+        timeoutHelper = new TimeoutHelper();
     }
 
 
@@ -237,9 +241,13 @@ public class NetGameConnection
     }
 */
 
+    public void DisconnectNice()
+    {
+
+    }
 
 
-    public void Disconnect()
+    public void DisconnectNow()
     {
         ResetSocket();
 
@@ -269,6 +277,7 @@ public class NetGameConnection
         heartbeatHelper.Reset();
     }
 
+    
     public void Shutdown()
     {
         if(IsClientSide() == true)
@@ -286,8 +295,16 @@ public class NetGameConnection
             m_rawTcpSocket.Close();
         }
     }
+    
 
 
+
+
+    public void Close()
+    {
+        SetConnectionState(NetGameConnectionState.None);
+        ResetSocket();
+    }
 
     public void SendMessage(Message message)
     {
@@ -319,6 +336,16 @@ public class NetGameConnection
 
     public void SetReceiveInFlightFlag(bool flag, string whereIn)
     {
+
+        if(flag == true)
+        {
+            Util.LogError("     Setting Receive Flag to True ");
+        }
+        else
+        {
+            Util.LogError("     Setting Receive Flag to False ");
+        }
+
         if (receiveInFlightFlag == flag)
         {
 
@@ -431,7 +458,7 @@ public class NetGameConnection
                 SetSendInFlightFlag(true, "BeingSend");
                 try
                 {
-                    m_rawTcpSocket.BeginSend(sendDataBuffer, 0, numBytes, 0, new AsyncCallback(AsyncSendCallback), null);
+                    m_rawTcpSocket.BeginSend(sendDataBuffer, 0, numBytes, 0, new AsyncCallback(AsyncSendCallback), m_rawTcpSocket);
                 }
                 catch (System.Net.Sockets.SocketException socketExceptionIn)
                 {
@@ -501,28 +528,47 @@ public class NetGameConnection
 
     public void PumpSocketReceive()
     {
-        //    Util.LogError("PumpSocketReceive " + m_connectionState.ToString());
+    //    Util.LogError("PumpSocketReceive " + m_connectionState.ToString());
         //		MemsetZeroBuffer(receiveDataBuffer, receiveDataBufferSize);
 
         // apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
         // Util.Log("SocketReceive");
         if (receiveInFlightFlag == true)
         {
-
+         //   Util.LogError(">>>>>>>>> PumpSocketReceive 1");
         }
         else if (m_connectionState != NetGameConnectionState.Connected)
         {
-
+          //  Util.LogError(">>>>>>>>> PumpSocketReceive 2");
         }
         else if (m_rawTcpSocket == null)
         {
-
+          //  Util.LogError(">>>>>>>>> PumpSocketReceive 3");
         }
         else
         {
-            SetReceiveInFlightFlag(true, "BeginReceive in SocketReceive");
 
-            m_rawTcpSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBufferSize, SocketFlags.None, new AsyncCallback(AsyncReceiveCallback), null);
+            try
+            {
+                Util.LogError("########### BeginReceive " + counter.ToString());
+                SetReceiveInFlightFlag(true, "BeginReceive in SocketReceive");
+                Util.LogError("m_rawTCPSocket.blocking " + m_rawTcpSocket.Blocking.ToString());
+
+
+
+                //    m_rawTcpSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBufferSize, SocketFlags.None, new AsyncCallback(AsyncReceiveCallback), null);
+                m_rawTcpSocket.BeginReceive(receiveDataBuffer, 0, receiveDataBuffer.Length, SocketFlags.None, new AsyncCallback(AsyncReceiveCallback), m_rawTcpSocket);
+                Util.LogError("receiveDataBufferSize " + receiveDataBufferSize.ToString());
+            }
+            catch (System.Net.Sockets.SocketException socketExceptionIn)
+            {
+                SetReceiveInFlightFlag(false, "BeginReceive in SocketReceive");
+            }
+            catch (System.Exception exceptionIn)
+            {
+                SetReceiveInFlightFlag(false, "BeginReceive in SocketReceive");
+            }
+
         }
     }
 
@@ -530,6 +576,7 @@ public class NetGameConnection
 
     private void AsyncReceiveCallback(IAsyncResult ar)
     {
+        Util.LogError("Receive Callback");
         int numBytesReceived = 0;
         bool endReceiveSuccess = false;
         bool killingConnectionNow = false;
@@ -537,7 +584,9 @@ public class NetGameConnection
 
         try
         {
+            Util.LogError("     Receive Callback, Try End " + counter.ToString());
             numBytesReceived = m_rawTcpSocket.EndReceive(ar);
+            Util.LogError("     Officially End: Receive Callback, Try End");
             endReceiveSuccess = true;
         }
 
@@ -547,7 +596,16 @@ public class NetGameConnection
         catch (System.Net.Sockets.SocketException socketExceptionIn)
         {            
             endReceiveSuccess = false;
-            if(socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.ConnectionReset) // 10054
+
+
+            string errString = "SOCKET EXCEPTION! ErrorCode = " + socketExceptionIn.ErrorCode.ToString() + ", Socket Exception = \"" + socketExceptionIn.ToString() + "\"";
+
+            errString += "############## afterEndSring";
+            Util.LogError(errString);
+            Util.LogError("afterEndString2");
+
+
+            if (socketExceptionIn.ErrorCode == (int) System.Net.Sockets.SocketError.ConnectionReset) // 10054
             {
                 killingConnectionNow = true;
                 killConnectionMsg = "ConnectionReset";
@@ -556,93 +614,119 @@ public class NetGameConnection
         }
         catch (SystemException exceptionIn)
         {
+
+            Util.LogError("################ more nice things happening");
+
             endReceiveSuccess = false;
         }
-
+        Util.LogError("endReceiveSuccess " + endReceiveSuccess.ToString());
 
         //	Util.LogError("ReceivedCallback, numBytesReceived " + numBytesReceived.ToString());
         // byte counter
 
-
-        if (endReceiveSuccess == true)
+        try
         {
-            if (numBytesReceived > 0)
-            {
-                if (NetGlobal.netMeter != null && NetGlobal.netMeter.IsEnabled() == true)
-                {
-                    lock (NetGlobal.netMeter)
-                    {
-                        if (IsClientSide())
-                        {
-                            NetGlobal.netMeter.Record(NetMeter.EntryFlag.Client | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived);
-                        }
-                        else if (IsServerSide())
-                        {
-                            NetGlobal.netMeter.Record(NetMeter.EntryFlag.Server | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived);
-                        }
-                    }
-                }
-
-                int i = 0;
-                while (i < numBytesReceived)
-                {
-                    if (m_curMsgSizeInfoIndex < NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
-                    {
-                        // i'm assuming receiveDataBuffer is in network order?
-                        m_curMsgSizeInfoReadBuffer[m_curMsgSizeInfoIndex] = receiveDataBuffer[i];
-                        m_curMsgSizeInfoIndex++;
-
-                        if (m_curMsgSizeInfoIndex == NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
-                        {
-                            if (BitConverter.IsLittleEndian == true)
-                            {
-                                Array.Reverse(m_curMsgSizeInfoReadBuffer);
-                            }
-
-                            m_curMsgDataSize = BitConverter.ToInt32(m_curMsgSizeInfoReadBuffer, 0);// data size
-                            m_curMsgDataReadBuffer = new byte[m_curMsgDataSize];
-                        }
-                    }
-                    else if (m_curMsgDataIndex < m_curMsgDataSize)
-                    {
-                        m_curMsgDataReadBuffer[m_curMsgDataIndex] = receiveDataBuffer[i];
-                        m_curMsgDataIndex++;
-
-                        if (m_curMsgDataIndex == m_curMsgDataSize)
-                        {
-                            Message message = Message.GetOne();
-                            // deserialize current payload to a message
-
-                            NetSerializer reader = NetSerializer.GetOne();
-                            reader.SetupReadMode("ReceiveCallback", Globals.SerializeWithDebugMarkers, m_curMsgDataReadBuffer, m_curMsgDataSize);
-
-                            message.Deserialize(reader);
-                            // then add it to the receiveMsgList
-
-                            lock (m_receiveMessageListLock)
-                            {
-                                m_receiveMessageList.Add(message);
-                            }
-
-                            m_curMsgSizeInfoIndex = 0;
-                            m_curMsgDataIndex = 0;
-                        }
-
-                    }
-
-                    i++;
-                }
-            }
-            else
+            if (endReceiveSuccess == true)
             {
                 Util.LogError("numBytesReceived " + numBytesReceived.ToString());
-            }
-            SetReceiveInFlightFlag(false, "ReceiveCallback");
-        }
+                if (numBytesReceived > 0)
+                {
+                    if (NetGlobal.netMeter != null && NetGlobal.netMeter.IsEnabled() == true)
+                    {
+                        lock (NetGlobal.netMeter)
+                        {
+                            if (IsClientSide())
+                            {
+                                NetGlobal.netMeter.Record(NetMeter.EntryFlag.Client | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived);
+                            }
+                            else if (IsServerSide())
+                            {
+                                NetGlobal.netMeter.Record(NetMeter.EntryFlag.Server | NetMeter.EntryFlag.Receive | NetMeter.EntryFlag.Tcp, numBytesReceived);
+                            }
+                        }
+                    }
 
-        if(killingConnectionNow)
+                    int i = 0;
+                    while (i < numBytesReceived)
+                    {
+                        if (m_curMsgSizeInfoIndex < NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
+                        {
+                            // i'm assuming receiveDataBuffer is in network order?
+                            m_curMsgSizeInfoReadBuffer[m_curMsgSizeInfoIndex] = receiveDataBuffer[i];
+                            m_curMsgSizeInfoIndex++;
+
+                            if (m_curMsgSizeInfoIndex == NUM_BYTES_FOR_HEADER_MESSAGE_SIZE)
+                            {
+                                if (BitConverter.IsLittleEndian == true)
+                                {
+                                    Array.Reverse(m_curMsgSizeInfoReadBuffer);
+                                }
+
+                                m_curMsgDataSize = BitConverter.ToInt32(m_curMsgSizeInfoReadBuffer, 0);// data size
+                                m_curMsgDataReadBuffer = new byte[m_curMsgDataSize];
+                            }
+                        }
+                        else if (m_curMsgDataIndex < m_curMsgDataSize)
+                        {
+                            m_curMsgDataReadBuffer[m_curMsgDataIndex] = receiveDataBuffer[i];
+                            m_curMsgDataIndex++;
+
+                            if (m_curMsgDataIndex == m_curMsgDataSize)
+                            {
+                                Message message = Message.GetOne();
+                                // deserialize current payload to a message
+
+                                NetSerializer reader = NetSerializer.GetOne();
+                                reader.SetupReadMode("ReceiveCallback", Globals.SerializeWithDebugMarkers, m_curMsgDataReadBuffer, m_curMsgDataSize);
+
+                                message.Deserialize(reader);
+                                // then add it to the receiveMsgList
+
+                                lock (m_receiveMessageListLock)
+                                {
+                                    m_receiveMessageList.Add(message);
+                                }
+
+                                m_curMsgSizeInfoIndex = 0;
+                                m_curMsgDataIndex = 0;
+                            }
+
+                        }
+
+                        i++;
+                    }
+
+                }
+                else if ((numBytesReceived == 0) && (m_rawTcpSocket.Blocking))
+                {
+                    Util.LogError("Server handling client socket got forcibly shut down");
+                    DisconnectNow();
+                }
+
+                else
+                {
+                    Util.LogError("!!!!!!!!! numBytesReceived " + numBytesReceived.ToString());
+                }
+
+                // Util.LogError("     Setting Receive Flag off");
+            }
+        }
+        catch (System.Net.Sockets.SocketException socketExceptionIn)
         {
-            Disconnect();
+            string errString = "SOCKET EXCEPTION! ErrorCode = " + socketExceptionIn.ErrorCode.ToString() + ", Exception = \"" + socketExceptionIn.ToString() + "\"";
+            Util.LogError(errString);
+        }
+        catch (System.Exception exceptionIn)
+        {
+            Util.LogError("PrivateAsyncReceiveCallback() accept incoming try block");
+        }
+        SetReceiveInFlightFlag(false, "ReceiveCallback");
+
+
+        if (killingConnectionNow)
+        {
+            Util.LogError("!!!!!!!!!!!!!!!! Disconnecting");
+            DisconnectNow();
         }
     }
 
@@ -764,7 +848,7 @@ public class NetGameConnection
         // in the case where our socket is still attempting to a previous server, we reset it here and re-initialize it
         ResetSocket();
         InitClientSideSocket();
-
+        ConfigureRawTcpSocket(m_rawTcpSocket);
 
         try
         {
@@ -778,7 +862,28 @@ public class NetGameConnection
         }
     }
 
+    public void ConfigureRawTcpSocket(System.Net.Sockets.Socket rawTcpSocketIn)
+    {
+        Util.LogError(">>>>>>>>>>>> I fxxking configured RAW TCP SOcket");
+        if (rawTcpSocketIn == null)
+            return; // nothing to do
 
+
+        if(m_connectionSide == NetGameConnectionSide.ServerSide)
+        {
+            rawTcpSocketIn.SendTimeout = 20000;
+            rawTcpSocketIn.ReceiveTimeout = 20000;
+        }
+        else if (m_connectionSide == NetGameConnectionSide.ClientSide)
+        {
+            rawTcpSocketIn.SendTimeout = 20000;
+            rawTcpSocketIn.ReceiveTimeout = 20000;
+        }
+
+        //-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x
+        rawTcpSocketIn.DontFragment = false;    //zzzzzz PCs seem to have this enabled by default.  Disable this.
+                                                //-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x
+    }
 
 
     private void PrivateAsyncClientConnectCallback(IAsyncResult ar)
@@ -848,6 +953,8 @@ public class NetGameConnection
         IPEndPoint localIpEndPoint = (IPEndPoint)(m_rawTcpSocket.LocalEndPoint);
         string localAddressAndPortString = localIpEndPoint.Address.ToString() + ":" + localIpEndPoint.Port.ToString();
 
+        Util.LogError("localAddressAndPortString " + localAddressAndPortString);
+
         // the server, or whoever I am connected to
         IPEndPoint remoteIpEndPoint = (IPEndPoint)(m_rawTcpSocket.RemoteEndPoint);
         string remoteAddressAndPortString = remoteIpEndPoint.Address.ToString() + ":" + remoteIpEndPoint.Port.ToString();
@@ -865,12 +972,12 @@ public class NetGameConnection
 
         pingHelper.Init(m_netGameConnectionConfig.clientAutoPingEnabled, m_netGameConnectionConfig.clientAutoPingInMs);
         heartbeatHelper.Init(m_netGameConnectionConfig.clientHeartbeatEnabled, m_netGameConnectionConfig.clientHeartbeatInMs, m_netGameConnectionConfig.clientHeartbeatCargoSize);
-
+        timeoutHelper.Init(m_netGameConnectionConfig.clientTimeoutEnabled, m_netGameConnectionConfig.clientTimeoutInMs);
 
         Int64 timeStampNow = Util.GetRealTimeMS();
         pingHelper.UpdateTimeStampConnected(timeStampNow);
         heartbeatHelper.UpdateTimeStampConnected(timeStampNow);
-
+        timeoutHelper.UpdateTimeStampConnected(timeStampNow);
 
 
 
@@ -890,7 +997,13 @@ public class NetGameConnection
         SetSendInFlightFlag(false, "OnServerSocketConnected");
         SetReceiveInFlightFlag(false, "OnServerSocketConnected");
 
+        Int64 timeStampNow = Util.GetRealTimeMS();
+
         heartbeatHelper.Init(m_netGameConnectionConfig.serverHeartbeatEnabled, m_netGameConnectionConfig.serverHeartbeatInMs, m_netGameConnectionConfig.serverHeartbeatCargoSize);
+        heartbeatHelper.UpdateTimeStampConnected(timeStampNow);
+
+        timeoutHelper.Init(m_netGameConnectionConfig.serverTimeoutEnabled, m_netGameConnectionConfig.serverTimeoutInMs);
+        timeoutHelper.UpdateTimeStampConnected(timeStampNow);
     }
     /*
 		public void AsyncClientConnectToHost(string ipAddress, int port)
@@ -925,14 +1038,17 @@ public class NetGameConnection
     // pump means tick
     public void Pump()
     {
+    //    Util.LogError("                 Pump " + counter.ToString());
         PumpClientConnect();
         PumpClientReconnect();
         PumpHeartbeats();
         PumpAutoPings();
+        PumpTimeOuts();
 
         PumpSocketSend();
         PumpSocketReceive();
         ProcessIncomingMessages();
+        counter++;
 
         // listen for stuff
 
@@ -1005,5 +1121,33 @@ public class NetGameConnection
             }
         }
     }
+
+    public void PumpTimeout()
+    {
+        if(IsConnected() == true)
+        {
+            Int64 now_ms = Util.GetRealTimeMS();
+
+            if (timeoutHelper.IsEnabled() && !timeoutHelper.HaveAKickRequest())
+            {
+                if(timeoutHelper.ShouldTriggerTimeoutNow(now_ms))
+                {
+                    Message sysKickMessage = Message.SysKickMessage(m_connectionSide.ToString() + " Timeout"); 
+                    SendMessage(sysKickMessage);
+
+                    timeoutHelper.StartKickRequestTimer(now_ms);
+                }
+            }
+
+            if(timeoutHelper.HaveAKickRequest())
+            {
+                if(timeoutHelper.ShouldKickNow(now_ms))
+                {
+                    DisconnectNow();
+                }
+            }
+        }
+    }
+    
 }
 

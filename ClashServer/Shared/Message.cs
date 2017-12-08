@@ -25,11 +25,15 @@ public class Message : INetSerializer
 
         SysPing,
         SysHeartbeat,
+        SysKick,
     };
 
     public bool wantReply;
     public int pingId;
     public Int64 timeStampInMs;
+
+
+    public string disconnectMsg;
 
     // for SysHeartbeat
     public int cargoSize;
@@ -91,6 +95,13 @@ public class Message : INetSerializer
         message.timeStampInMs = timeStampInMsIn;
         message.wantReply = wantReplyIn;
         return message;     
+    }
+
+    public static Message SysKickMessage(string disconnectMsg)
+    {
+        Message message = Message.GetOne(Type.SysPing);
+        message.disconnectMsg = disconnectMsg;
+        return message;
     }
 
     public static Message SysHeartbeatMessage(Int64 timeStampInMsIn, int cargoSizeIn, bool wantReplyIn)
@@ -222,6 +233,10 @@ public class Message : INetSerializer
                 writer.WriteInt64(timeStampInMs, "timeStampInMs");
                 writer.WriteBool(wantReply, "wantReply");
                 break;
+            case Message.Type.SysKick:
+                Util.LogError("TODO, SysKick Message, SerializeString");
+                break;
+
             default:   
                 Util.LogError("Message.Deserialize() : produced unsupported message type: " + type.ToString() + "!!!");
                 throw new Exception("Unsupported message type \"" + type.ToString() + "\"!!!");
@@ -299,6 +314,10 @@ public class Message : INetSerializer
                 pingId = reader.ReadInt32("pingId");
                 timeStampInMs = reader.ReadInt64("timeStampInMs");
                 wantReply = reader.ReadBool("wantReply");
+                break;
+
+            case Message.Type.SysKick:
+                Util.LogError("TODO, SysKick Message, DeserializeString");
                 break;
 
             default:

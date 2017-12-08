@@ -187,6 +187,14 @@ public class Main : MonoBehaviour
 
     }
 
+    public void OnApplicationQuit()
+    {
+        foreach (var gc in gameClients)
+        {
+    //        gc.ShutdownConnection();
+        }
+    }
+
     void ActivateMainScreen()
     {
         ui.mainMenu.Activate();

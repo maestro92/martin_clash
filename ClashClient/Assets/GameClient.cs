@@ -80,7 +80,10 @@ public class GameClient
         }
     }
 
-
+    public void ShutdownConnection()
+    {
+        connection.Close();
+    }
 
 
     public void Tick()

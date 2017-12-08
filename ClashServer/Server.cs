@@ -84,11 +84,10 @@ public class Server
 	private Object m_connectionLock = new Object();
 
 	private int userCounter;
-
-	private MatchManager m_matchManager;
+    private ManualResetEvent m_allDone = new ManualResetEvent(false);
+    private MatchManager m_matchManager;
 
 	// Thread signal.  
-	public static ManualResetEvent m_allDone = new ManualResetEvent(false);
 
 	public Server()
 	{
@@ -105,12 +104,11 @@ public class Server
 	// set up the IP address and port, then start accepting commands
 	public void startHosting(string hostIPAddress, int port)
 	{
-		m_isRunning = true;
 		m_hostingNetAddress = new NetAddress(hostIPAddress, port);
 
-		m_listenerSocket = new Socket(AddressFamily.InterNetwork,
-									  SocketType.Stream,
-									  ProtocolType.Tcp);
+		m_listenerSocket = new Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+                                      System.Net.Sockets.SocketType.Stream,
+                                      System.Net.Sockets.ProtocolType.Tcp);
 
 		Util.LogError(m_hostingNetAddress.GetIPAddress().ToString());
 
@@ -148,6 +146,14 @@ public class Server
 
 			while (m_isRunning)
 			{
+
+                m_allDone.Reset();
+                Console.WriteLine("Waiting for a game connection...");
+                m_listenerSocket.BeginAccept(new AsyncCallback(AsyncServerAcceptConnectionCallback), null);
+                m_allDone.WaitOne();
+
+
+                /*
 				Util.Log("Waiting for a connection...");
 				Socket handlerSocket = m_listenerSocket.Accept();
 
@@ -155,7 +161,8 @@ public class Server
 
 				Thread clientThread = new Thread(() => spawnHandleClientThread(handlerSocket));
 				clientThread.Start();
-			}
+                */
+            }
 
 			// C# specs says
 			// "it is recommended that you call Shutdown before the Close method.
@@ -166,13 +173,69 @@ public class Server
 		}
        ));
 
-
-		m_listenerThread.Start();
+        m_isRunning = true;
+        m_listenerThread.Start();
 	}
 
 
+    private void AsyncServerAcceptConnectionCallback(IAsyncResult ar)
+    {
+        try
+        {
+            // Signal the main thread to continue.
+            m_allDone.Set();
+            Socket handlerSocket = m_listenerSocket.EndAccept(ar);
 
-	private void spawnHandleClientThread(Socket handlerSocket)
+            int newId = 0;
+            lock (m_connectionLock)
+            {
+                newId = m_clientIdCounter;
+                m_clientIdCounter++;
+            }
+
+            NetGameConnection connection = new NetGameConnection();
+            ServerClientHandle client = new ServerClientHandle(newId);
+
+            // IPEndPoint: Represents a network endpoint as an IP address and a port number.
+            // the Microsoft Examples casts them to IPEndPoint, so we'll do the same
+            // https://msdn.microsoft.com/en-us/library/system.net.sockets.socket.remoteendpoint(v=vs.110).aspx
+            IPEndPoint remoteIpEndPoint = (IPEndPoint)(handlerSocket.RemoteEndPoint);
+
+            string remoteAddressAndPortString = remoteIpEndPoint.Address.ToString() + ":" + remoteIpEndPoint.Port.ToString();
+            string connectionName = remoteAddressAndPortString;
+
+            client.SetGameConnection(connection);
+
+
+            connection.OnHandleMessage = OnHandleMessage;
+            connection.SetConnectionName(connectionName);
+            connection.InitServerSideSocket(handlerSocket);
+            connection.ConfigureRawTcpSocket(handlerSocket);
+            connection.OnServerSocketConnected();
+
+            Util.Log("Handle Client Connection:  Client@:" + remoteAddressAndPortString + ", connectionName=" + connection.GetConnectionName());
+
+            lock (m_connectionLock)
+            {
+                connections.Add(connection, client);
+            }
+        }
+        catch (System.Net.Sockets.SocketException socketExceptionIn)
+        {
+            string errString = "SOCKET EXCEPTION! ErrorCode = " + socketExceptionIn.ErrorCode.ToString() + ", Exception = \"" + socketExceptionIn.ToString() + "\"";
+            Util.LogWarning(errString);
+        }
+        catch (System.Exception exceptionIn)
+        {
+            string errString = "EXCEPTION! Exception = \"" + exceptionIn.ToString() + "\"";
+            Util.LogError(errString);
+        }
+    }
+
+
+
+
+    private void spawnHandleClientThread(Socket handlerSocket)
 	{
 		Util.Log("Spawning New Client Thread");
 
@@ -229,7 +292,8 @@ public class Server
 
 		m_matchManager.Tick();
 
-	}
+    //    System.Threading.Thread.Sleep(125); // for ServerBatterySaverMode.SaveLots
+    }
 
 
 	public void stopHosting()
@@ -479,41 +543,7 @@ public class Server
 	}
 
 
-	// my call back should invoke the EndAccept method. 
-	public void AsyncServerAcceptConnectionCallback(IAsyncResult ar)
-	{
-		// Signal the main thread to continue.
-		m_allDone.Set();
 
-		Socket listerner = (Socket)ar.AsyncState;
-
-		// EndAccept will return a new Socket object that you can use to send and 
-		// receive data with the remote host. 
-		Socket handler = listerner.EndAccept(ar);
-
-		// Socket rawTcpSocketNew = m_listenerSocket.EndAccept(ar);
-		Util.Log("Accepted a connection");
-
-		/*
-		// Create the state object
-		StateObject state = new StateObject();
-
-		state.workSocket = handler;
-
-		handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReadCallback), state);
-		*/
-
-		/*
-		string data = null;
-		bytes = new byte[1024];
-		int bytesReceived = handler.Receive(bytes);
-		data += Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-		if (data.IndexOf("<EOF>") > -1)
-		{
-			return;
-		}
-		*/
-	}
 
 
 	public static void ReadCallback(IAsyncResult ar)
