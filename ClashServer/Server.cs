@@ -325,8 +325,30 @@ public class Server
 		}
 	}
 
-	// this function has lots of early returns
-	public void OnHandleMessage(NetGameConnection connection, Message message)
+
+
+    public void OnHandleSysMessage(NetGameConnection connection, Message message)
+    {
+        switch (message.type)
+        {
+            case Message.Type.SysPing:
+                OnHandleSysPingMessage(connection, message);
+                break;
+
+            case Message.Type.SysHeartbeat:
+                OnHandleSysHeartbeatMessage(connection, message);
+                break;
+
+            case Message.Type.SysKick:
+                OnHandleSysKickMessage(connection, message);
+                break;
+        }
+    }
+
+
+
+    // this function has lots of early returns
+    public void OnHandleMessage(NetGameConnection connection, Message message)
 	{
 		if (message.type == Message.Type.None)
 		{
@@ -341,81 +363,99 @@ public class Server
 			return;
 		}
 
-		switch (message.type)
-		{
-			case Message.Type.ClientConnectRequest:
-				Util.Log("\tHandling ClientConnectRequest");
 
-				// send back client the ConnectResponse
+        if (message.IsSysMsg())
+        {
+            OnHandleSysMessage(connection, message);
+        }
+        else
+        {
+            switch (message.type)
+            {
+                case Message.Type.ClientConnectRequest:
+                    Util.Log("\tHandling ClientConnectRequest");
 
-				Message response = Message.ServerConnectResponse();
-				connection.SendMessage(response);
-				break;
+                    // send back client the ConnectResponse
 
-			case Message.Type.ServerConnectResponse:
-				Util.Log("\tHandling ServerClientResponse");
-				break;
+                    Message response = Message.ServerConnectResponse();
+                    connection.SendMessage(response);
+                    break;
 
-            case Message.Type.SysHeartbeat:
-                if (message.wantReply)
-                {
-                    Message sysHeartbeatMsg = Message.SysHeartbeatMessage(message.timeStampInMs, message.cargoSize, false);
-                    connection.SendMessage(sysHeartbeatMsg);
-                }
-                else
-                {
-                    // Not do anything
-                }
-                break;
+                case Message.Type.ServerConnectResponse:
+                    Util.Log("\tHandling ServerClientResponse");
+                    break;
 
 
-            case Message.Type.SysPing:
-                if (message.wantReply)
-                {
-                    Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
-                    connection.SendMessage(sysPingMessage2);
-                }
-                else
-                {
-                    Int64 now_ms = Util.GetRealTimeMS();
-                    connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
-                }
-                break;
 
-            case Message.Type.Login:
-				Util.Log("\tHandling Login");
-				int userId = userCounter++;
-				Message loginResponse = Message.LoginResponse(userId);
-				connection.SendMessage(loginResponse);
-				break;
+                case Message.Type.Login:
+                    Util.Log("\tHandling Login");
+                    int userId = userCounter++;
+                    Message loginResponse = Message.LoginResponse(userId);
+                    connection.SendMessage(loginResponse);
+                    break;
 
 
-			case Message.Type.SearchMatch:
-				Util.Log("\tHandling " + currentClient.id.ToString() + " SearchMatch Request");
-				// put player in queue
-				m_matchManager.AddPlayerToQueue(currentClient);
-				break;
+                case Message.Type.SearchMatch:
+                    Util.Log("\tHandling " + currentClient.id.ToString() + " SearchMatch Request");
+                    // put player in queue
+                    m_matchManager.AddPlayerToQueue(currentClient);
+                    break;
 
-			case Message.Type.CastCard:
-				Util.LogError("\tCastCard");
-				ServerSimulation serverSimulation = m_matchManager.FindSimulation(currentClient);
-				if (serverSimulation != null)
-				{
-					m_matchManager.FindSimulation(currentClient);
-					message.frameCount = serverSimulation.simulation.curFrameCount;
-					serverSimulation.BroadCastMsgNoWait(message);
-				}
-				break;
+                case Message.Type.CastCard:
+                    Util.LogError("\tCastCard");
+                    ServerSimulation serverSimulation = m_matchManager.FindSimulation(currentClient);
+                    if (serverSimulation != null)
+                    {
+                        m_matchManager.FindSimulation(currentClient);
+                        message.frameCount = serverSimulation.simulation.curFrameCount;
+                        serverSimulation.BroadCastMsgNoWait(message);
+                    }
+                    break;
 
-			default:
-				Util.LogError("OnHandledMessage() : produced unsupported message type: " + message.type.ToString() + "!!!");
-				break;
-		}
+                default:
+                    Util.LogError("OnHandledMessage() : produced unsupported message type: " + message.type.ToString() + "!!!");
+                    break;
+            }
+        }
 	}
 
 
 
-	/*
+
+    public void OnHandleSysPingMessage(NetGameConnection connection, Message message)
+    { 
+        if (message.wantReply)
+        {
+            Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
+            connection.SendMessage(sysPingMessage2);
+        }
+        else
+        {
+            Int64 now_ms = Util.GetRealTimeMS();
+            connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
+        }
+    }
+
+    public void OnHandleSysHeartbeatMessage(NetGameConnection connection, Message message)
+    {
+        if (message.wantReply)
+        {
+            Message sysHeartbeatMsg = Message.SysHeartbeatMessage(message.timeStampInMs, message.cargoSize, false);
+            connection.SendMessage(sysHeartbeatMsg);
+        }
+        else
+        {
+            // Not do anything
+        }
+    }
+
+    public void OnHandleSysKickMessage(NetGameConnection connection, Message message)
+    {
+        connection.DisconnectNow();
+    }
+
+
+/*
 	public void processIncomingMessages()
 	{
 		// go through all connections
@@ -437,61 +477,61 @@ public class Server
 	}
 	*/
 
-	/*
-	public void SocketSend(Socket handlerSocket)
-	{
+/*
+public void SocketSend(Socket handlerSocket)
+{
 
-		// Begin sending the data to the remote device.  
-		handlerSocket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handlerSocket);
-	}
+    // Begin sending the data to the remote device.  
+    handlerSocket.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handlerSocket);
+}
 
-	private void SendCallback(IAsyncResult ar)
-	{
-		Socket handler = (Socket)ar.AsyncState;
+private void SendCallback(IAsyncResult ar)
+{
+    Socket handler = (Socket)ar.AsyncState;
 
-		// Complete sending the data to the remote device
-		int byteSent = handler.EndSend(ar);
-		Util.Log("Sent " + byteSent.ToString() + " to client");
-	}
-
-
-	public void SocketReceive(Socket handlerSocket)
-	{
-		//	StateObject state = new StateObject;
-		int bufferSize = 1024;
-		byte[] buffer = new byte[bufferSize];
+    // Complete sending the data to the remote device
+    int byteSent = handler.EndSend(ar);
+    Util.Log("Sent " + byteSent.ToString() + " to client");
+}
 
 
-		// Create the state object.  
-		StateObject state = new StateObject();
-		state.workSocket = handlerSocket;
-
-		// apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
-		handlerSocket.BeginReceive(buffer, 0, bufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
-	}
+public void SocketReceive(Socket handlerSocket)
+{
+    //	StateObject state = new StateObject;
+    int bufferSize = 1024;
+    byte[] buffer = new byte[bufferSize];
 
 
+    // Create the state object.  
+    StateObject state = new StateObject();
+    state.workSocket = handlerSocket;
 
-	private void ReceiveCallback(IAsyncResult ar)
-	{
-		String content = String.Empty;
+    // apparenltly BeginReceive and BeginSend is thread-safe, so you can call them without locks
+    handlerSocket.BeginReceive(buffer, 0, bufferSize, SocketFlags.None, new AsyncCallback(ReceiveCallback), state);
+}
 
-		StateObject state = (StateObject)ar.AsyncState;
-		Socket socket = state.workSocket;
-		int numBytesReceived = socket.EndReceive(ar);
 
-		if (numBytesReceived > 0)
-		{
-			// There  might be more data, so store the data received so far.  
-			state.sb.Append(Encoding.ASCII.GetString(
-				state.buffer, 0, numBytesReceived));
 
-			// Check for end-of-file tag. If it is not there, read   
-			// more data.  
-			content = state.sb.ToString();
-			Util.Log("Read " + content + " bytes from socket");
-		}
-	}
+private void ReceiveCallback(IAsyncResult ar)
+{
+    String content = String.Empty;
+
+    StateObject state = (StateObject)ar.AsyncState;
+    Socket socket = state.workSocket;
+    int numBytesReceived = socket.EndReceive(ar);
+
+    if (numBytesReceived > 0)
+    {
+        // There  might be more data, so store the data received so far.  
+        state.sb.Append(Encoding.ASCII.GetString(
+            state.buffer, 0, numBytesReceived));
+
+        // Check for end-of-file tag. If it is not there, read   
+        // more data.  
+        content = state.sb.ToString();
+        Util.Log("Read " + content + " bytes from socket");
+    }
+}
 */
 
 
@@ -500,17 +540,17 @@ public class Server
 
 
 
-	// accepting connections asynchronously gives you the ability
-	// to send and receive data with a separate execution thread
+// accepting connections asynchronously gives you the ability
+// to send and receive data with a separate execution thread
 
-	// If you want the original thread to block after you call the 
-	// BeginAccept method, use WaitHandle.WaitOne. 
-	// Call the Set method on a ManualResetEvent in the callback method
-	// when you want the original thread to continue executing
+// If you want the original thread to block after you call the 
+// BeginAccept method, use WaitHandle.WaitOne. 
+// Call the Set method on a ManualResetEvent in the callback method
+// when you want the original thread to continue executing
 
 
-	// seems like the allDone.WaitOne is blocking. So how is this Async? 
-	public void TryAsyncAcceptConnections()
+// seems like the allDone.WaitOne is blocking. So how is this Async? 
+public void TryAsyncAcceptConnections()
 	{
 		Util.Log("Check to See if there is a connection...");
 

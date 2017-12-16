@@ -191,7 +191,7 @@ public class Main : MonoBehaviour
     {
         foreach (var gc in gameClients)
         {
-    //        gc.ShutdownConnection();
+            gc.ShutdownConnection();
         }
     }
 

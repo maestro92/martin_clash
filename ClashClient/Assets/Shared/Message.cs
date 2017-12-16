@@ -62,6 +62,10 @@ public class Message : INetSerializer
 		return GetOne(Type.None);
 	}
 
+    public bool IsSysMsg()
+    {
+        return type == Message.Type.SysHeartbeat || type == Message.Type.SysKick || type == Message.Type.SysPing;
+    }
 
 	public static Message GetOne(Message.Type type)
     {

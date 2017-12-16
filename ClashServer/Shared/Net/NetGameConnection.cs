@@ -249,8 +249,9 @@ public class NetGameConnection
 
     public void DisconnectNow()
     {
-        ResetSocket();
-
+        Util.LogError("DisconnectNow");
+        TeardownRawTcpSocket();
+        Util.LogError("DisconnectNow 2");
         if (IsClientSide())
         {
             Util.LogError("Client Disconnect");
@@ -258,6 +259,7 @@ public class NetGameConnection
         }
         else if (IsServerSide())
         {
+            Util.LogError("Server Disconnect");
             ServerDisconnect();
         }
     }
@@ -265,6 +267,8 @@ public class NetGameConnection
     private void ServerDisconnect()
     {
         SetConnectionState(NetGameConnectionState.ServerDisconnected);
+        pingHelper.Reset();
+        heartbeatHelper.Reset();
     }
 
     private void ClientDisconnect()
@@ -303,7 +307,7 @@ public class NetGameConnection
     public void Close()
     {
         SetConnectionState(NetGameConnectionState.None);
-        ResetSocket();
+        TeardownRawTcpSocket();
     }
 
     public void SendMessage(Message message)
@@ -810,11 +814,13 @@ public class NetGameConnection
     }
 
 
-    private void ResetSocket()
+    private void TeardownRawTcpSocket()
     {
         try
         {
+            Util.LogError("Disconnect 1");
             m_rawTcpSocket.Disconnect(true);
+            Util.LogError("Disconnect 2");
         }
         catch (System.Net.Sockets.SocketException socketExceptionIn)
         {
@@ -834,7 +840,10 @@ public class NetGameConnection
 
         try
         {
+            Util.LogError("Close 1");
             m_rawTcpSocket.Close();
+            Util.LogError("Close 2");
+
         }
         catch (System.Exception exceptionIn)
         {
@@ -846,7 +855,7 @@ public class NetGameConnection
     private void PrivateAsyncClientConnect()
     {
         // in the case where our socket is still attempting to a previous server, we reset it here and re-initialize it
-        ResetSocket();
+        TeardownRawTcpSocket();
         InitClientSideSocket();
         ConfigureRawTcpSocket(m_rawTcpSocket);
 
@@ -972,7 +981,7 @@ public class NetGameConnection
 
         pingHelper.Init(m_netGameConnectionConfig.clientAutoPingEnabled, m_netGameConnectionConfig.clientAutoPingInMs);
         heartbeatHelper.Init(m_netGameConnectionConfig.clientHeartbeatEnabled, m_netGameConnectionConfig.clientHeartbeatInMs, m_netGameConnectionConfig.clientHeartbeatCargoSize);
-        timeoutHelper.Init(m_netGameConnectionConfig.clientTimeoutEnabled, m_netGameConnectionConfig.clientTimeoutInMs);
+        timeoutHelper.Init(m_netGameConnectionConfig.clientTimeoutEnabled, m_netGameConnectionConfig.clientTimeoutInMs, 0);
 
         Int64 timeStampNow = Util.GetRealTimeMS();
         pingHelper.UpdateTimeStampConnected(timeStampNow);
@@ -1002,7 +1011,7 @@ public class NetGameConnection
         heartbeatHelper.Init(m_netGameConnectionConfig.serverHeartbeatEnabled, m_netGameConnectionConfig.serverHeartbeatInMs, m_netGameConnectionConfig.serverHeartbeatCargoSize);
         heartbeatHelper.UpdateTimeStampConnected(timeStampNow);
 
-        timeoutHelper.Init(m_netGameConnectionConfig.serverTimeoutEnabled, m_netGameConnectionConfig.serverTimeoutInMs);
+        timeoutHelper.Init(m_netGameConnectionConfig.serverTimeoutEnabled, m_netGameConnectionConfig.serverTimeoutInMs, m_netGameConnectionConfig.serverKickingInMs);
         timeoutHelper.UpdateTimeStampConnected(timeStampNow);
     }
     /*
@@ -1043,7 +1052,7 @@ public class NetGameConnection
         PumpClientReconnect();
         PumpHeartbeats();
         PumpAutoPings();
-        PumpTimeOuts();
+        PumpTimeout();
 
         PumpSocketSend();
         PumpSocketReceive();
@@ -1134,15 +1143,16 @@ public class NetGameConnection
                 {
                     Message sysKickMessage = Message.SysKickMessage(m_connectionSide.ToString() + " Timeout"); 
                     SendMessage(sysKickMessage);
-
+                    Util.LogError("Sending kickMessage");
                     timeoutHelper.StartKickRequestTimer(now_ms);
                 }
             }
 
             if(timeoutHelper.HaveAKickRequest())
             {
-                if(timeoutHelper.ShouldKickNow(now_ms))
+                if (timeoutHelper.ShouldKickNow(now_ms))
                 {
+                    Util.LogError("isServerSide " + m_connectionSide.ToString());
                     DisconnectNow();
                 }
             }

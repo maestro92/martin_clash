@@ -120,6 +120,7 @@
     <Compile Include="Assets\Shared\Net\NetUtil.cs" />
     <Compile Include="Assets\Shared\Net\NetworkManager.cs" />
     <Compile Include="Assets\Shared\Net\PingHelper.cs" />
+    <Compile Include="Assets\Shared\Net\TimeoutHelper.cs" />
     <Compile Include="Assets\Shared\PhysBody.cs" />
     <Compile Include="Assets\Shared\RateRegulator.cs" />
     <Compile Include="Assets\Shared\RateSmoother.cs" />

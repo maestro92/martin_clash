@@ -32,6 +32,7 @@
     <Compile Include="Shared\Net\HeatbeatHelper.cs" />
     <Compile Include="Shared\Net\NetGameConnectionConfig.cs" />
     <Compile Include="Shared\Net\PingHelper.cs" />
+    <Compile Include="Shared\Net\TimeoutHelper.cs" />
     <Compile Include="Shared\Simulation.cs" />
     <Compile Include="Shared\Net\NetworkManager.cs" />
     <Compile Include="Shared\Globals.cs" />

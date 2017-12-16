@@ -107,6 +107,26 @@ public class GameClient
         }
     }
 
+
+    public void OnHandleSysMessage(NetGameConnection connection, Message message)
+    {
+        switch (message.type)
+        {
+            case Message.Type.SysPing:
+                OnHandleSysPingMessage(connection, message);
+                break;
+
+            case Message.Type.SysHeartbeat:
+                OnHandleSysHeartbeatMessage(connection, message);
+                break;
+
+            case Message.Type.SysKick:
+                OnHandleSysKickMessage(connection, message);
+                break;
+        }
+    }
+
+
     // make a register function 
     // see RegisterTerminalCommand 
     public void OnHandledMessage(NetGameConnection connection, Message message)
@@ -117,87 +137,64 @@ public class GameClient
             return;
         }
 
-        switch (message.type)
+
+        if (message.IsSysMsg())
         {
-            case Message.Type.ServerConnectResponse:
-                Message loginRequest = Message.Login();
-                connection.SendMessage(loginRequest);
-                break;
-            case Message.Type.SysPing:
-                if(message.wantReply)
-                {
-                    Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
-                    connection.SendMessage(sysPingMessage2);
-                }
-                else
-                {
-                    Int64 now_ms = Util.GetRealTimeMS();
-                    connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
-                }
-                break;
+            OnHandleSysMessage(connection, message);
+        }
+        else
+        {
+            switch (message.type)
+            {
+                case Message.Type.ServerConnectResponse:
+                    Message loginRequest = Message.Login();
+                    connection.SendMessage(loginRequest);
+                    break;
 
-            case Message.Type.SysHeartbeat:
-                if (message.wantReply)
-                {
-                    Message sysHeartbeatMsg = Message.SysHeartbeatMessage(message.timeStampInMs, message.cargoSize, false);
-                    connection.SendMessage(sysHeartbeatMsg);
-                }
-                else
-                {
-                    // not do anything
-                }
-                break;
+                case Message.Type.LoginResponse:
+                    //    Util.LogError("Handling LoginResponse");
+                    this.userId = message.userId;
+                    if (OnLogin != null)
+                    {
+                        OnLogin();
+                    }
 
-            case Message.Type.LoginResponse:
-            //    Util.LogError("Handling LoginResponse");
-                this.userId = message.userId;
-                if (OnLogin != null)
-                {
-                    OnLogin();
-                }
+                    break;
 
-                break;
-                         
-            case Message.Type.BattleStartingInfo:
-          /*
-                Util.Log("Handling BattleStartingInfo Message");
-                if (userId == 11)
-                {
-                    Util.LogError("$$$$$$$$$$$$$$$$$$$$ starting battle");
-                }
-                */
-                StartBattle(message.bs);
-                break;
+                case Message.Type.BattleStartingInfo:
+                    StartBattle(message.bs);
+                    break;
 
-            case Message.Type.EndFrame:
-                
-//                Util.LogError("EndFrame");
-//           //     message.serverFrameInfo.Print();
-//                Util.LogError("is serverFrameInfo null ? " + (message.serverFrameInfo == null));
-//                Util.LogError("userId " + userId.ToString());
-//                Util.LogError("clientSim ? " + (clientSim == null));
-//                Util.LogError("clientSim.serverFrameInfoList ? " + (clientSim.serverFrameInfoList == null));
-//
-//
-                clientSim.serverFrameInfoList.Add(message.serverFrameInfo);
-                rateSmoother.AddNewFrame(message.serverFrameInfo.frameCount);
-                frameBufferAnalyzer.SetFrameHead(message.frameCount);
-                break;
+                case Message.Type.EndFrame:
 
-            case Message.Type.CastCard:
-                Util.LogError("Cast Card");
-                Util.LogError("message " + message.playerId);
-                Util.LogError("message frameCount" + message.frameCount);
+                    //                Util.LogError("EndFrame");
+                    //           //     message.serverFrameInfo.Print();
+                    //                Util.LogError("is serverFrameInfo null ? " + (message.serverFrameInfo == null));
+                    //                Util.LogError("userId " + userId.ToString());
+                    //                Util.LogError("clientSim ? " + (clientSim == null));
+                    //                Util.LogError("clientSim.serverFrameInfoList ? " + (clientSim.serverFrameInfoList == null));
+                    //
+                    //
+                    clientSim.serverFrameInfoList.Add(message.serverFrameInfo);
+                    rateSmoother.AddNewFrame(message.serverFrameInfo.frameCount);
+                    frameBufferAnalyzer.SetFrameHead(message.frameCount);
+                    break;
 
-                Util.LogError("simulation frameCount " + GetClientSimulation().simulation.curFrameCount.ToString());
-                m_simMessageQueue.Enqueue(message);
-                break;
+                case Message.Type.CastCard:
+                    Util.LogError("Cast Card");
+                    Util.LogError("message " + message.playerId);
+                    Util.LogError("message frameCount" + message.frameCount);
+
+                    Util.LogError("simulation frameCount " + GetClientSimulation().simulation.curFrameCount.ToString());
+                    m_simMessageQueue.Enqueue(message);
+                    break;
 
 
 
-            default:
-                Util.LogError("Default, message type " + message.type.ToString() + " not OnHandled");
-                break;
+                default:
+                    Util.LogError("Default, message type " + message.type.ToString() + " not OnHandled");
+                    break;
+            }
         }
 
     }
@@ -235,5 +232,40 @@ public class GameClient
             OnStartBattle();
         }
     }
+
+
+    public void OnHandleSysPingMessage(NetGameConnection connection, Message message)
+    {
+        if (message.wantReply)
+        {
+            Message sysPingMessage2 = Message.SysPingMessage(message.pingId, message.timeStampInMs, false);
+            connection.SendMessage(sysPingMessage2);
+        }
+        else
+        {
+            Int64 now_ms = Util.GetRealTimeMS();
+            connection.pingHelper.UpdatePing(now_ms, message.timeStampInMs, message.pingId);
+        }
+    }
+
+    public void OnHandleSysHeartbeatMessage(NetGameConnection connection, Message message)
+    {
+        if (message.wantReply)
+        {
+            Message sysHeartbeatMsg = Message.SysHeartbeatMessage(message.timeStampInMs, message.cargoSize, false);
+            connection.SendMessage(sysHeartbeatMsg);
+        }
+        else
+        {
+            // not do anything
+        }
+    }
+
+    public void OnHandleSysKickMessage(NetGameConnection connection, Message message)
+    {
+        Util.LogError("Disconnecting Now");
+        connection.DisconnectNow();
+    }
+
 }
 
